@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
             Schema::defaultStringLength(191);
         }
 
+        $this->useFileBackedStoresUntilDatabaseTablesExist();
+
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Link::class, LinkPolicy::class);
@@ -46,5 +49,31 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(Login::class, LogSuccessfulLogin::class);
         Event::listen(Logout::class, LogSuccessfulLogout::class);
+    }
+
+    /**
+     * Prevent Artisan commands from failing on fresh installs before
+     * database-backed cache/session tables have been migrated.
+     */
+    protected function useFileBackedStoresUntilDatabaseTablesExist(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        try {
+            if (config('cache.default') === 'database' && ! Schema::hasTable(config('cache.stores.database.table', 'cache'))) {
+                config(['cache.default' => 'file']);
+            }
+
+            if (config('session.driver') === 'database' && ! Schema::hasTable(config('session.table', 'sessions'))) {
+                config(['session.driver' => 'file']);
+            }
+        } catch (Throwable) {
+            config([
+                'cache.default' => 'file',
+                'session.driver' => 'file',
+            ]);
+        }
     }
 }
