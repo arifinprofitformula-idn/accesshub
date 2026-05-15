@@ -10,7 +10,8 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('layouts.partials.pwa-head')
+        @include('layouts.partials.asset-loader')
     </head>
     @php
         $searchRoute = request()->routeIs('app.access-items.*')
@@ -125,6 +126,8 @@
                     </div>
                 </main>
 
+                @include('layouts.partials.pwa-shell')
+
                 <nav class="sticky bottom-0 border-t border-slate-200 bg-white/96 px-4 py-3 backdrop-blur lg:hidden">
                     <div class="grid grid-cols-4 gap-2">
                         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard', 'app.dashboard') ? 'bg-slate-950 text-white' : 'text-slate-500' }} rounded-2xl px-3 py-2 text-center text-[11px] font-semibold">
@@ -143,5 +146,7 @@
                 </nav>
             </div>
         </div>
+
+        @include('layouts.partials.pwa-register')
     </body>
 </html>

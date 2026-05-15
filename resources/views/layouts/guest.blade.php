@@ -11,8 +11,8 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('layouts.partials.pwa-head')
+        @include('layouts.partials.asset-loader')
     </head>
     <body class="auth-grid-bg min-h-screen font-sans text-slate-100 antialiased">
         <div class="relative isolate min-h-screen overflow-hidden">
@@ -101,5 +101,7 @@
                 </div>
             </div>
         </div>
+
+        @include('layouts.partials.pwa-register')
     </body>
 </html>

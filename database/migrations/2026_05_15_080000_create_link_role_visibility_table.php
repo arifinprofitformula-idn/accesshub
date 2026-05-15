@@ -14,6 +14,7 @@ return new class extends Migration
         }
 
         Schema::create('link_role_visibility', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->foreignId('link_id')->constrained()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
 

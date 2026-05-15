@@ -17,6 +17,7 @@ return new class extends Migration
         }
 
         Schema::create('access_items', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->id();
             $table->string('platform_name');
             $table->string('login_url', 2048)->nullable();

@@ -17,6 +17,7 @@ return new class extends Migration
         }
 
         Schema::create('link_tag', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->foreignId('link_id')->constrained()->cascadeOnDelete();
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
 

@@ -19,6 +19,7 @@ return new class extends Migration
 
         if (! MigrationSchema::hasTable($tableNames['permissions'])) {
             Schema::create($tableNames['permissions'], static function (Blueprint $table) {
+                $table->engine = 'InnoDB';
                 $table->id();
                 $table->string('name');
                 $table->string('guard_name');
@@ -30,6 +31,7 @@ return new class extends Migration
 
         if (! MigrationSchema::hasTable($tableNames['roles'])) {
             Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
+                $table->engine = 'InnoDB';
                 $table->id();
 
                 if ($teams || config('permission.testing')) {
@@ -51,6 +53,7 @@ return new class extends Migration
 
         if (! MigrationSchema::hasTable($tableNames['model_has_permissions'])) {
             Schema::create($tableNames['model_has_permissions'], static function (Blueprint $table) use ($columnNames, $pivotPermission, $tableNames, $teams) {
+                $table->engine = 'InnoDB';
                 $table->unsignedBigInteger($pivotPermission);
                 $table->string('model_type');
                 $table->unsignedBigInteger($columnNames['model_morph_key']);
@@ -80,6 +83,7 @@ return new class extends Migration
 
         if (! MigrationSchema::hasTable($tableNames['model_has_roles'])) {
             Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($columnNames, $pivotRole, $tableNames, $teams) {
+                $table->engine = 'InnoDB';
                 $table->unsignedBigInteger($pivotRole);
                 $table->string('model_type');
                 $table->unsignedBigInteger($columnNames['model_morph_key']);
@@ -109,6 +113,7 @@ return new class extends Migration
 
         if (! MigrationSchema::hasTable($tableNames['role_has_permissions'])) {
             Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($pivotPermission, $pivotRole, $tableNames) {
+                $table->engine = 'InnoDB';
                 $table->unsignedBigInteger($pivotPermission);
                 $table->unsignedBigInteger($pivotRole);
 

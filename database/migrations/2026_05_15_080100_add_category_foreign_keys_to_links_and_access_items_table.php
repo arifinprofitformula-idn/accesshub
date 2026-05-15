@@ -3,12 +3,21 @@
 use App\Support\MigrationSchema;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            foreach (['categories', 'links', 'access_items'] as $table) {
+                if (MigrationSchema::hasTable($table)) {
+                    DB::statement("ALTER TABLE `{$table}` ENGINE = InnoDB");
+                }
+            }
+        }
+
         if (
             MigrationSchema::hasTable('links')
             && MigrationSchema::hasTable('categories')

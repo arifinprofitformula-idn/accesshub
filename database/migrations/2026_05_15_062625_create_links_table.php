@@ -17,6 +17,7 @@ return new class extends Migration
         }
 
         Schema::create('links', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->id();
             $table->string('title');
             $table->string('url', 2048);

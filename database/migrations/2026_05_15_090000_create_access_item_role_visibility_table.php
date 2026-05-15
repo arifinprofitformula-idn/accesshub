@@ -14,6 +14,7 @@ return new class extends Migration
         }
 
         Schema::create('access_item_role_visibility', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->foreignId('access_item_id')->constrained()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
 

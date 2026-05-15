@@ -13,6 +13,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::view('/offline', 'offline')->name('offline');
+
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
@@ -57,6 +59,16 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::prefix('app')->name('app.')->group(function () {
+        Route::get('/favorites', function () {
+            return redirect()->route('app.links.index', ['favorites' => 1]);
+        })->name('favorites');
+
+        Route::get('/links/create', function () {
+            abort_unless(auth()->user()?->can('create', \App\Models\Link::class), 403);
+
+            return redirect('/admin/links/create');
+        })->name('links.create');
+
         Route::get('/links', [LinkController::class, 'index'])->name('links.index');
         Route::get('/links/{link}/open', [LinkController::class, 'open'])->name('links.open');
         Route::post('/links/{link}/favorite', [LinkController::class, 'toggleFavorite'])->name('links.favorite.toggle');
