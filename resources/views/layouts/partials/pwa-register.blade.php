@@ -1,4 +1,6 @@
 <script>
+    const _PWA_DEV = {{ app()->environment('production') ? 'false' : 'true' }};
+
     (() => {
         if (!('serviceWorker' in navigator)) {
             return;
@@ -13,211 +15,229 @@
             update: '[data-pwa-update]',
             updateRefresh: '[data-pwa-update-refresh]',
         };
-        const installDismissKey = 'accesshub-pwa-install-dismissed-at';
-        const installDismissSessionKey = 'accesshub-pwa-install-dismissed-session';
-        const installDismissDurationMs = 1000 * 60 * 60 * 24 * 14;
+
+        const installDismissKey      = 'accesshub-pwa-install-dismissed-at';
+        const installDismissSession  = 'accesshub-pwa-install-dismissed-session';
+        const installedKey           = 'accesshub-pwa-installed'; // permanent flag
+        const installDismissDuration = 1000 * 60 * 60 * 24 * 14;
 
         let deferredInstallPrompt = null;
-        let waitingWorker = null;
-        let refreshing = false;
+        let waitingWorker         = null;
+        let refreshing            = false;
+
+        /* ── Helpers ──────────────────────────────────────────── */
 
         const isStandalone = () =>
-            window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true;
 
-        const get = (selector) => document.querySelector(selector);
+        const get = (sel) => document.querySelector(sel);
 
-        const updateOnlineStatus = () => {
-            const status = get(selectors.status);
-            const label = get(selectors.statusLabel);
-
-            if (!status || !label) {
-                return;
-            }
-
-            const online = navigator.onLine;
-
-            status.dataset.state = online ? 'online' : 'offline';
-            label.textContent = online ? 'Online' : 'Offline';
+        const safeGet = (storage, key) => {
+            try { return storage.getItem(key); } catch { return null; }
+        };
+        const safeSet = (storage, key, value) => {
+            try { storage.setItem(key, value); } catch { /* ignore */ }
+        };
+        const safeDel = (storage, key) => {
+            try { storage.removeItem(key); } catch { /* ignore */ }
         };
 
-        const safeStorageGet = (storage, key) => {
-            try {
-                return storage.getItem(key);
-            } catch (error) {
-                return null;
-            }
-        };
+        /* ── Installed detection ──────────────────────────────── */
 
-        const safeStorageSet = (storage, key, value) => {
-            try {
-                storage.setItem(key, value);
-            } catch (error) {
-                // Ignore storage failures.
-            }
-        };
+        const isInstalled = () =>
+            safeGet(localStorage, installedKey) === '1';
 
-        const safeStorageRemove = (storage, key) => {
-            try {
-                storage.removeItem(key);
-            } catch (error) {
-                // Ignore storage failures.
-            }
-        };
+        const markInstalled = () =>
+            safeSet(localStorage, installedKey, '1');
+
+        /* ── Dismiss logic (for users who clicked X) ──────────── */
 
         const isInstallDismissed = () => {
-            if (safeStorageGet(sessionStorage, installDismissSessionKey) === '1') {
-                return true;
-            }
+            // Already installed permanently → never show again
+            if (isInstalled()) return true;
 
-            const dismissedAt = Number.parseInt(safeStorageGet(localStorage, installDismissKey) || '', 10);
+            // Dismissed this session
+            if (safeGet(sessionStorage, installDismissSession) === '1') return true;
 
-            if (!Number.isFinite(dismissedAt)) {
-                return false;
-            }
+            // Dismissed within 14-day window
+            const ts = Number.parseInt(safeGet(localStorage, installDismissKey) || '', 10);
+            if (!Number.isFinite(ts)) return false;
+            if ((Date.now() - ts) < installDismissDuration) return true;
 
-            if ((Date.now() - dismissedAt) < installDismissDurationMs) {
-                return true;
-            }
-
-            safeStorageRemove(localStorage, installDismissKey);
+            safeDel(localStorage, installDismissKey);
             return false;
         };
 
-        const setInstallDismissed = (value) => {
-            if (value) {
-                safeStorageSet(sessionStorage, installDismissSessionKey, '1');
-                safeStorageSet(localStorage, installDismissKey, String(Date.now()));
-                return;
-            }
-
-            safeStorageRemove(sessionStorage, installDismissSessionKey);
-            safeStorageRemove(localStorage, installDismissKey);
+        const setInstallDismissed = () => {
+            safeSet(sessionStorage, installDismissSession, '1');
+            safeSet(localStorage, installDismissKey, String(Date.now()));
         };
+
+        /* ── Card visibility ──────────────────────────────────── */
 
         const hideInstallCard = () => {
             const card = get(selectors.installCard);
-
-            if (card) {
-                card.hidden = true;
-            }
+            if (card) card.hidden = true;
         };
 
         const maybeShowInstallCard = () => {
             const card = get(selectors.installCard);
+            if (!card) return;
 
-            if (!card) {
-                return;
-            }
+            const shouldShow =
+                deferredInstallPrompt !== null &&
+                !isStandalone() &&
+                !isInstallDismissed();
 
-            const shouldShow = deferredInstallPrompt && !isStandalone() && !isInstallDismissed();
             card.hidden = !shouldShow;
         };
 
-        const showUpdateNotice = () => {
-            const update = get(selectors.update);
-
-            if (update) {
-                update.hidden = false;
-            }
+        const showUpdateCard = () => {
+            const card = get(selectors.update);
+            if (card) card.hidden = false;
         };
+
+        const hideUpdateCard = () => {
+            const card = get(selectors.update);
+            if (card) card.hidden = true;
+        };
+
+        /* ── Online / offline status ──────────────────────────── */
+
+        const updateOnlineStatus = () => {
+            const chip  = get(selectors.status);
+            const label = get(selectors.statusLabel);
+            if (!chip || !label) return;
+
+            const online = navigator.onLine;
+            chip.dataset.state = online ? 'online' : 'offline';
+            label.textContent  = online ? 'Online' : 'Offline';
+        };
+
+        /* ── Service worker registration ──────────────────────── */
 
         const registerWorker = async () => {
             try {
-                const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
 
-                if (!@json(app()->environment('production'))) {
+                if (_PWA_DEV) {
                     console.info('[AccessHub PWA] Service worker registered.');
                 }
 
-                if (registration.waiting) {
-                    waitingWorker = registration.waiting;
-                    showUpdateNotice();
+                if (reg.waiting) {
+                    waitingWorker = reg.waiting;
+                    showUpdateCard();
                 }
 
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-
-                    if (!newWorker) {
-                        return;
-                    }
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    if (!newWorker) return;
 
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                             waitingWorker = newWorker;
-                            showUpdateNotice();
+                            showUpdateCard();
                         }
                     });
                 });
-            } catch (error) {
-                if (!@json(app()->environment('production'))) {
-                    console.warn('[AccessHub PWA] Service worker registration failed.', error);
+            } catch (err) {
+                if (_PWA_DEV) {
+                    console.warn('[AccessHub PWA] Service worker registration failed.', err);
                 }
             }
         };
 
-        window.addEventListener('beforeinstallprompt', (event) => {
-            event.preventDefault();
-            deferredInstallPrompt = event;
+        /* ── Event: browser ready to prompt install ───────────── */
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Only capture if not already installed
+            if (isInstalled() || isStandalone()) return;
+            e.preventDefault();
+            deferredInstallPrompt = e;
             maybeShowInstallCard();
         });
 
+        /* ── Event: app successfully installed ────────────────── */
+
         window.addEventListener('appinstalled', () => {
             deferredInstallPrompt = null;
-            setInstallDismissed(true);
+            markInstalled();          // permanent — never show popup again
             hideInstallCard();
         });
 
-        window.addEventListener('online', updateOnlineStatus);
+        /* ── Event: online / offline ──────────────────────────── */
+
+        window.addEventListener('online',  updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
 
-        document.addEventListener('click', async (event) => {
-            const installButton = event.target.closest(selectors.install);
-
-            if (installButton) {
-                if (!deferredInstallPrompt) {
-                    return;
-                }
-
-                deferredInstallPrompt.prompt();
-                const choice = await deferredInstallPrompt.userChoice;
-                deferredInstallPrompt = null;
-
-                if (choice?.outcome === 'accepted') {
-                    setInstallDismissed(true);
-                }
-
-                hideInstallCard();
-                return;
-            }
-
-            const dismissButton = event.target.closest(selectors.installDismiss);
-
-            if (dismissButton) {
-                event.preventDefault();
-                setInstallDismissed(true);
-                hideInstallCard();
-                return;
-            }
-
-            const updateButton = event.target.closest(selectors.updateRefresh);
-
-            if (updateButton && waitingWorker) {
-                waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-        });
+        /* ── Event: SW controller changed → reload ────────────── */
 
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) {
-                return;
-            }
-
+            if (refreshing) return;
             refreshing = true;
             window.location.reload();
         });
 
+        /* ── Click delegation ─────────────────────────────────── */
+
+        document.addEventListener('click', async (e) => {
+
+            // ① Install button
+            const installBtn = e.target.closest(selectors.install);
+            if (installBtn) {
+                if (!deferredInstallPrompt) return;
+
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                deferredInstallPrompt = null;
+
+                if (outcome === 'accepted') {
+                    markInstalled();
+                }
+
+                hideInstallCard();
+                return;
+            }
+
+            // ② Close / dismiss install card
+            const dismissBtn = e.target.closest(selectors.installDismiss);
+            if (dismissBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                setInstallDismissed();
+                hideInstallCard();
+                return;
+            }
+
+            // ③ Refresh / update button
+            const refreshBtn = e.target.closest(selectors.updateRefresh);
+            if (refreshBtn) {
+                hideUpdateCard();
+
+                if (waitingWorker) {
+                    // Tell waiting SW to take over; controllerchange will reload
+                    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+                    // Fallback: force reload after 600 ms if controllerchange doesn't fire
+                    setTimeout(() => window.location.reload(), 600);
+                } else {
+                    // No waiting worker → just reload
+                    window.location.reload();
+                }
+                return;
+            }
+        });
+
+        /* ── Init on DOM ready ────────────────────────────────── */
+
         document.addEventListener('DOMContentLoaded', () => {
             updateOnlineStatus();
-            maybeShowInstallCard();
+
+            // Don't even try to show install card if PWA is already installed
+            if (!isInstalled() && !isStandalone()) {
+                maybeShowInstallCard();
+            }
+
             registerWorker();
         });
     })();

@@ -227,6 +227,11 @@
         pointer-events: auto;
     }
 
+    .pwa-install-card[hidden],
+    .pwa-update-card[hidden] {
+        display: none !important;
+    }
+
     .pwa-install-card {
         position: relative;
         display: flex;
