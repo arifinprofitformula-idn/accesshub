@@ -308,23 +308,23 @@
             <div class="shell">
                 <section class="hero">
                     <p class="eyebrow">AccessHub Workspace</p>
-                    <h1>Kelola akses kerja dari satu titik yang rapi.</h1>
+                    <h1>Satu Dashboard untuk Semua Akses Kerja.</h1>
                     <p class="copy">
-                        Halaman ini dipakai untuk login pengguna aplikasi harian seperti admin operasional dan staff. Untuk akses panel admin Filament, gunakan jalur admin login yang terpisah.
+                        Link penting, data akses, dan favorit tim tersusun rapi agar kerja harian lebih cepat.
                     </p>
 
                     <div class="metrics">
                         <article class="metric">
-                            <strong>Workspace Login</strong>
-                            Masuk ke dashboard aplikasi untuk link, access item, dan favorit kerja tim.
+                            <strong>Lebih Cepat</strong>
+                            Temukan link dan akses penting tanpa bolak-balik chat.
                         </article>
                         <article class="metric">
-                            <strong>Role Aware</strong>
-                            Hak akses mengikuti role yang sudah ditetapkan di sistem.
+                            <strong>Lebih Rapi</strong>
+                            Semua kebutuhan kerja tersusun per kategori, role, dan tim.
                         </article>
                         <article class="metric">
-                            <strong>Admin Portal</strong>
-                            Super admin dan admin bisa memakai <a class="link" href="{{ url('/admin/login') }}">/admin/login</a>.
+                            <strong>Lebih Aman</strong>
+                            Akses yang sesuai dengan peran dan izin.
                         </article>
                     </div>
                 </section>
@@ -343,7 +343,7 @@
                             <p class="eyebrow" style="margin-bottom: 10px;">User Login</p>
                             <h2>Masuk ke AccessHub</h2>
                             <p class="subcopy">
-                                Gunakan halaman ini untuk login pengguna aplikasi. Admin panel tetap tersedia di <a class="link" href="{{ url('/admin/login') }}">/admin/login</a>.
+                                Akses Penting dalam Genggaman Anda
                             </p>
                         </div>
                     </div>
@@ -378,7 +378,7 @@
                                 required
                                 autofocus
                                 autocomplete="username"
-                                placeholder="you@company.com"
+                                placeholder="your@email.com"
                             >
                         </div>
 
@@ -390,7 +390,7 @@
                                 name="password"
                                 required
                                 autocomplete="current-password"
-                                placeholder="Masukkan password"
+                                placeholder="Masukkan password Anda"
                             >
                         </div>
 
@@ -408,9 +408,6 @@
                         <button type="submit" class="button">Masuk ke Dashboard</button>
                     </form>
 
-                    <div class="helper">
-                        <strong>Pembeda akses:</strong> halaman ini untuk pengguna aplikasi umum. Jalur <a class="link" href="{{ url('/admin/login') }}">/admin/login</a> tetap dipakai khusus pengguna yang boleh masuk ke panel admin.
-                    </div>
                 </section>
             </div>
         </main>
