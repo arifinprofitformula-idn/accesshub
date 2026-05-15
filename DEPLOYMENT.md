@@ -295,7 +295,7 @@ Langkah ringkas:
 
 ```bash
 cd /home/arvadigi/repositories/accesshub
-php artisan config:clear
+php artisan optimize:clear
 php artisan migrate --force
 php artisan db:seed --force
 ```
@@ -419,7 +419,7 @@ Lalu bersihkan dan cache ulang config:
 
 ```bash
 cd /home/arvadigi/repositories/accesshub
-php artisan config:clear
+php artisan optimize:clear
 php artisan config:cache
 ```
 
@@ -439,6 +439,12 @@ Jika ingin reset semua cache terlebih dahulu:
 ```bash
 php artisan optimize:clear
 ```
+
+Catatan:
+
+- AccessHub sekarang aman menjalankan `optimize:clear` walau tabel `cache` atau `sessions` belum ada
+- migration juga sudah toleran jika sebagian tabel lama sudah ada tetapi tabel `migrations` belum sinkron
+- tetap paling ideal memakai database baru yang kosong untuk deploy pertama
 
 ## 16. Queue Jika Dibutuhkan
 
@@ -501,7 +507,9 @@ Setiap ada update code baru dari repository:
 cd /home/arvadigi/repositories/accesshub
 git pull origin main
 composer install --no-dev --optimize-autoloader
+php artisan optimize:clear
 php artisan migrate --force
+php artisan db:seed --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -592,10 +600,27 @@ Solusi paling aman untuk install pertama:
 
 ```bash
 cd /home/arvadigi/repositories/accesshub
-php artisan config:clear
+php artisan optimize:clear
 php artisan migrate --force
 php artisan db:seed --force
 ```
+
+Jika error ini muncul pada server yang sudah pernah dipakai deploy AccessHub atau percobaan install sebelumnya:
+
+- pastikan sudah `git pull` code terbaru yang berisi migration kompatibel
+- jalankan ulang urutan berikut:
+
+```bash
+cd /home/arvadigi/repositories/accesshub
+php artisan optimize:clear
+php artisan migrate --force
+php artisan db:seed --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+- jika masih gagal, kemungkinan struktur tabel lama berbeda jauh dari schema aplikasi saat ini; dalam kondisi itu solusi paling aman tetap backup lalu gunakan database baru yang kosong
 
 ### Storage link gagal
 
@@ -611,6 +636,7 @@ Jalankan:
 ```bash
 cd /home/arvadigi/repositories/accesshub
 php artisan optimize:clear
+php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -625,6 +651,7 @@ cd /home/arvadigi/repositories/accesshub
 cp .env.example .env
 composer install --no-dev --optimize-autoloader
 php artisan key:generate
+php artisan optimize:clear
 php artisan migrate --force
 php artisan db:seed --force
 php artisan storage:link
@@ -647,7 +674,9 @@ npm run build
 cd /home/arvadigi/repositories/accesshub
 git pull origin main
 composer install --no-dev --optimize-autoloader
+php artisan optimize:clear
 php artisan migrate --force
+php artisan db:seed --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
