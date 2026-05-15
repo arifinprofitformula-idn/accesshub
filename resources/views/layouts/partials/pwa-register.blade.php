@@ -6,11 +6,16 @@
 
         const selectors = {
             install: '[data-pwa-install]',
+            installCard: '[data-pwa-install-card]',
+            installDismiss: '[data-pwa-install-dismiss]',
             status: '[data-pwa-status]',
             statusLabel: '[data-pwa-status-label]',
             update: '[data-pwa-update]',
             updateRefresh: '[data-pwa-update-refresh]',
         };
+        const installDismissKey = 'accesshub-pwa-install-dismissed-at';
+        const installDismissSessionKey = 'accesshub-pwa-install-dismissed-session';
+        const installDismissDurationMs = 1000 * 60 * 60 * 24 * 14;
 
         let deferredInstallPrompt = null;
         let waitingWorker = null;
@@ -35,22 +40,77 @@
             label.textContent = online ? 'Online' : 'Offline';
         };
 
-        const hideInstallButton = () => {
-            const button = get(selectors.install);
-
-            if (button) {
-                button.hidden = true;
+        const safeStorageGet = (storage, key) => {
+            try {
+                return storage.getItem(key);
+            } catch (error) {
+                return null;
             }
         };
 
-        const maybeShowInstallButton = () => {
-            const button = get(selectors.install);
+        const safeStorageSet = (storage, key, value) => {
+            try {
+                storage.setItem(key, value);
+            } catch (error) {
+                // Ignore storage failures.
+            }
+        };
 
-            if (!button) {
+        const safeStorageRemove = (storage, key) => {
+            try {
+                storage.removeItem(key);
+            } catch (error) {
+                // Ignore storage failures.
+            }
+        };
+
+        const isInstallDismissed = () => {
+            if (safeStorageGet(sessionStorage, installDismissSessionKey) === '1') {
+                return true;
+            }
+
+            const dismissedAt = Number.parseInt(safeStorageGet(localStorage, installDismissKey) || '', 10);
+
+            if (!Number.isFinite(dismissedAt)) {
+                return false;
+            }
+
+            if ((Date.now() - dismissedAt) < installDismissDurationMs) {
+                return true;
+            }
+
+            safeStorageRemove(localStorage, installDismissKey);
+            return false;
+        };
+
+        const setInstallDismissed = (value) => {
+            if (value) {
+                safeStorageSet(sessionStorage, installDismissSessionKey, '1');
+                safeStorageSet(localStorage, installDismissKey, String(Date.now()));
                 return;
             }
 
-            button.hidden = !(deferredInstallPrompt && !isStandalone());
+            safeStorageRemove(sessionStorage, installDismissSessionKey);
+            safeStorageRemove(localStorage, installDismissKey);
+        };
+
+        const hideInstallCard = () => {
+            const card = get(selectors.installCard);
+
+            if (card) {
+                card.hidden = true;
+            }
+        };
+
+        const maybeShowInstallCard = () => {
+            const card = get(selectors.installCard);
+
+            if (!card) {
+                return;
+            }
+
+            const shouldShow = deferredInstallPrompt && !isStandalone() && !isInstallDismissed();
+            card.hidden = !shouldShow;
         };
 
         const showUpdateNotice = () => {
@@ -98,12 +158,13 @@
         window.addEventListener('beforeinstallprompt', (event) => {
             event.preventDefault();
             deferredInstallPrompt = event;
-            maybeShowInstallButton();
+            maybeShowInstallCard();
         });
 
         window.addEventListener('appinstalled', () => {
             deferredInstallPrompt = null;
-            hideInstallButton();
+            setInstallDismissed(true);
+            hideInstallCard();
         });
 
         window.addEventListener('online', updateOnlineStatus);
@@ -118,9 +179,23 @@
                 }
 
                 deferredInstallPrompt.prompt();
-                await deferredInstallPrompt.userChoice;
+                const choice = await deferredInstallPrompt.userChoice;
                 deferredInstallPrompt = null;
-                hideInstallButton();
+
+                if (choice?.outcome === 'accepted') {
+                    setInstallDismissed(true);
+                }
+
+                hideInstallCard();
+                return;
+            }
+
+            const dismissButton = event.target.closest(selectors.installDismiss);
+
+            if (dismissButton) {
+                event.preventDefault();
+                setInstallDismissed(true);
+                hideInstallCard();
                 return;
             }
 
@@ -142,7 +217,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateOnlineStatus();
-            maybeShowInstallButton();
+            maybeShowInstallCard();
             registerWorker();
         });
     })();

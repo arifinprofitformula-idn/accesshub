@@ -4,9 +4,19 @@
         <span data-pwa-status-label>Online</span>
     </div>
 
-    <button type="button" class="pwa-chip pwa-chip-button" data-pwa-install hidden>
-        Install AccessHub
-    </button>
+    <div class="pwa-install-card" data-pwa-install-card hidden>
+        <button type="button" class="pwa-card-close" data-pwa-install-dismiss aria-label="Tutup popup install">
+            ×
+        </button>
+        <p class="pwa-install-eyebrow">Install App</p>
+        <p class="pwa-update-title">Install AccessHub</p>
+        <p class="pwa-update-copy">
+            Tambahkan AccessHub ke home screen agar akses kerja tim terasa lebih cepat seperti aplikasi native.
+        </p>
+        <button type="button" class="pwa-update-button" data-pwa-install>
+            Install Sekarang
+        </button>
+    </div>
 
     <div class="pwa-update-card" data-pwa-update hidden>
         <div>

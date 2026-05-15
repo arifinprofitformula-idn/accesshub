@@ -198,15 +198,6 @@
         pointer-events: auto;
     }
 
-    .pwa-chip-button {
-        transition: 0.2s ease;
-    }
-
-    .pwa-chip-button:hover {
-        border-color: rgba(103, 232, 249, 0.4);
-        color: #bae6fd;
-    }
-
     .pwa-dot {
         width: 0.625rem;
         height: 0.625rem;
@@ -234,6 +225,55 @@
         box-shadow: 0 30px 70px -45px rgba(34, 211, 238, 0.85);
         backdrop-filter: blur(28px);
         pointer-events: auto;
+    }
+
+    .pwa-install-card {
+        position: relative;
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(34, 211, 238, 0.2);
+        background:
+            radial-gradient(circle at top right, rgba(34, 211, 238, 0.16), transparent 40%),
+            radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.16), transparent 36%),
+            rgba(2, 6, 23, 0.94);
+        padding: 1rem;
+        color: #e2e8f0;
+        box-shadow: 0 30px 70px -45px rgba(34, 211, 238, 0.9);
+        backdrop-filter: blur(28px);
+        pointer-events: auto;
+    }
+
+    .pwa-install-eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #7dd3fc;
+    }
+
+    .pwa-card-close {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.8rem;
+        height: 1.8rem;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.86);
+        color: #94a3b8;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .pwa-card-close:hover {
+        color: #e2e8f0;
+        border-color: rgba(125, 211, 252, 0.35);
     }
 
     .pwa-update-title {
@@ -286,6 +326,10 @@
         .pwa-update-card {
             align-items: flex-start;
             flex-direction: column;
+        }
+
+        .pwa-install-card {
+            padding: 1rem 1rem 0.95rem;
         }
 
         .pwa-update-button {
