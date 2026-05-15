@@ -1,9 +1,4 @@
 <div class="pwa-shell" aria-live="polite">
-    <div class="pwa-chip" data-pwa-status data-state="online">
-        <span class="pwa-dot"></span>
-        <span data-pwa-status-label>Online</span>
-    </div>
-
     <div class="pwa-install-card" data-pwa-install-card hidden>
         <button type="button" class="pwa-card-close" data-pwa-install-dismiss aria-label="Tutup popup install">
             ×

@@ -4,12 +4,23 @@
             <form method="GET" action="{{ route('app.access-items.index') }}" class="space-y-4" x-on:submit="submitting = true">
                 <div class="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                     <div>
-                        <label for="search" class="mb-2 block text-sm font-semibold text-slate-800">Pencarian Cepat</label>
+                        <label for="search" class="mb-2 block text-sm font-semibold text-amber-200">Pencarian Cepat</label>
                         <input id="search" name="search" type="text" value="{{ $filters['search'] ?? '' }}" placeholder="Cari platform, login URL, username, PIC, kategori, atau catatan..." class="ah-input-lg">
                     </div>
-                    <div class="ah-soft-card">
-                        <p class="text-sm font-semibold text-slate-900">Catatan Keamanan</p>
-                        <p class="mt-2 text-sm leading-6 text-slate-500">Halaman ini hanya menyimpan metadata akses platform. Password tetap berada di penyimpanan eksternal seperti Bitwarden atau Google Password Manager.</p>
+                    <div class="ah-soft-card bg-gradient-to-br from-amber-300/12 to-orange-500/6">
+                        <div class="flex items-start gap-3">
+                            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-200 to-orange-500 text-slate-950 shadow-lg">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                                    <path d="M12 3 5 6v5c0 4.25 2.75 8.17 7 9 4.25-.83 7-4.75 7-9V6l-7-3Z" />
+                                    <path d="M9.75 11.5h4.5" />
+                                    <path d="M12 8.75v5.5" />
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="text-sm font-semibold text-white">Tanpa password</p>
+                                <p class="mt-1 text-sm leading-6 text-slate-300">Hanya metadata dan lokasi penyimpanan eksternal.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -57,33 +68,44 @@
             @forelse ($accessItems as $item)
                 <article class="ah-panel p-5">
                     <div class="flex flex-wrap gap-2">
-                        <span class="ah-badge bg-slate-100 text-slate-600">{{ $item->category?->name ?? 'Tanpa kategori' }}</span>
+                        <span class="ah-badge bg-white/8 text-slate-300">{{ $item->category?->name ?? 'Tanpa kategori' }}</span>
                         <span @class([
                             'ah-badge',
-                            'bg-emerald-50 text-emerald-700' => $item->status === 'active',
-                            'bg-amber-50 text-amber-700' => $item->status === 'needs_review',
-                            'bg-slate-100 text-slate-600' => $item->status === 'archived',
+                            'bg-emerald-400/15 text-emerald-200' => $item->status === 'active',
+                            'bg-amber-300/15 text-amber-200' => $item->status === 'needs_review',
+                            'bg-slate-500/20 text-slate-300' => $item->status === 'archived',
                         ])>{{ ucfirst(str_replace('_', ' ', $item->status)) }}</span>
                     </div>
 
-                    <h2 class="mt-3 text-lg font-semibold text-slate-950">{{ $item->platform_name }}</h2>
-                    <p class="mt-2 text-sm text-slate-600">{{ $item->username ?: 'Username belum diisi.' }}</p>
-                    <p class="mt-1 text-xs text-slate-500">PIC: {{ $item->pic_name }}</p>
+                    <div class="mt-3 flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-200 to-orange-500 text-slate-950 shadow-lg">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-4.5 w-4.5">
+                                <path d="M12 3 5 6v5c0 4.25 2.75 8.17 7 9 4.25-.83 7-4.75 7-9V6l-7-3Z" />
+                                <path d="M9.75 11.5h4.5" />
+                                <path d="M12 8.75v5.5" />
+                            </svg>
+                        </span>
+                        <div class="min-w-0">
+                            <h2 class="text-lg font-semibold text-white">{{ $item->platform_name }}</h2>
+                            <p class="mt-2 text-sm text-slate-300">{{ $item->username ?: 'Username belum diisi.' }}</p>
+                            <p class="mt-1 text-xs text-slate-400">PIC: {{ $item->pic_name }}</p>
+                        </div>
+                    </div>
 
                     <div class="mt-4">
                         <span @class([
                             'ah-badge',
-                            'bg-rose-50 text-rose-700' => $item->sensitivity_level === 'high',
-                            'bg-amber-50 text-amber-700' => $item->sensitivity_level === 'medium',
-                            'bg-emerald-50 text-emerald-700' => $item->sensitivity_level === 'low',
+                            'bg-rose-400/15 text-rose-200' => $item->sensitivity_level === 'high',
+                            'bg-amber-300/15 text-amber-200' => $item->sensitivity_level === 'medium',
+                            'bg-emerald-400/15 text-emerald-200' => $item->sensitivity_level === 'low',
                         ])>{{ match($item->sensitivity_level) { 'high' => 'Tinggi', 'medium' => 'Sedang', default => 'Rendah' } }}</span>
                     </div>
 
-                    <div class="mt-4 ah-soft-card text-sm text-slate-600">
-                        <p class="font-semibold text-slate-900">Lokasi password eksternal</p>
+                    <div class="mt-4 ah-soft-card text-sm text-slate-300">
+                        <p class="font-semibold text-white">Lokasi password eksternal</p>
                         <p class="mt-1">{{ $item->password_location }}</p>
                         @if ($item->note)
-                            <p class="mt-3 font-semibold text-slate-900">Catatan</p>
+                            <p class="mt-3 font-semibold text-white">Catatan</p>
                             <p class="mt-1 leading-6">{{ $item->note }}</p>
                         @endif
                     </div>
@@ -116,7 +138,7 @@
         <section class="ah-table-shell hidden lg:block">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">
-                    <thead class="bg-slate-50/90 text-left text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <thead class="bg-white/5 text-left text-xs uppercase tracking-[0.18em] text-slate-400">
                         <tr>
                             <th class="px-6 py-4">Platform</th>
                             <th class="px-6 py-4">Username</th>
@@ -127,38 +149,38 @@
                             <th class="px-6 py-4">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white">
+                    <tbody class="divide-y divide-white/8 bg-transparent">
                         @forelse ($accessItems as $item)
                             <tr class="align-top">
                                 <td class="px-6 py-5">
-                                    <p class="font-semibold text-slate-950">{{ $item->platform_name }}</p>
-                                    <p class="mt-1 text-sm text-slate-500">{{ $item->login_url ?: 'Login URL belum diisi.' }}</p>
+                                    <p class="font-semibold text-white">{{ $item->platform_name }}</p>
+                                    <p class="mt-1 text-sm text-slate-400">{{ $item->login_url ?: 'Login URL belum diisi.' }}</p>
                                     <div class="mt-2">
                                         <span @class([
                                             'ah-badge',
-                                            'bg-emerald-50 text-emerald-700' => $item->status === 'active',
-                                            'bg-amber-50 text-amber-700' => $item->status === 'needs_review',
-                                            'bg-slate-100 text-slate-600' => $item->status === 'archived',
+                                            'bg-emerald-400/15 text-emerald-200' => $item->status === 'active',
+                                            'bg-amber-300/15 text-amber-200' => $item->status === 'needs_review',
+                                            'bg-slate-500/20 text-slate-300' => $item->status === 'archived',
                                         ])>{{ ucfirst(str_replace('_', ' ', $item->status)) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-5 text-slate-600">{{ $item->username ?: '-' }}</td>
+                                <td class="px-6 py-5 text-slate-300">{{ $item->username ?: '-' }}</td>
                                 <td class="px-6 py-5">
-                                    <span class="ah-badge bg-slate-100 text-slate-600">{{ $item->category?->name ?? 'Tanpa kategori' }}</span>
+                                    <span class="ah-badge bg-white/8 text-slate-300">{{ $item->category?->name ?? 'Tanpa kategori' }}</span>
                                 </td>
-                                <td class="px-6 py-5 text-slate-600">{{ $item->pic_name }}</td>
+                                <td class="px-6 py-5 text-slate-300">{{ $item->pic_name }}</td>
                                 <td class="px-6 py-5">
                                     <span @class([
                                         'ah-badge',
-                                        'bg-rose-50 text-rose-700' => $item->sensitivity_level === 'high',
-                                        'bg-amber-50 text-amber-700' => $item->sensitivity_level === 'medium',
-                                        'bg-emerald-50 text-emerald-700' => $item->sensitivity_level === 'low',
+                                        'bg-rose-400/15 text-rose-200' => $item->sensitivity_level === 'high',
+                                        'bg-amber-300/15 text-amber-200' => $item->sensitivity_level === 'medium',
+                                        'bg-emerald-400/15 text-emerald-200' => $item->sensitivity_level === 'low',
                                     ])>{{ match($item->sensitivity_level) { 'high' => 'Tinggi', 'medium' => 'Sedang', default => 'Rendah' } }}</span>
                                 </td>
-                                <td class="px-6 py-5 text-slate-600">
+                                <td class="px-6 py-5 text-slate-300">
                                     <p>{{ $item->password_location }}</p>
                                     @if ($item->note)
-                                        <p class="mt-2 max-w-sm text-xs leading-5 text-slate-500">{{ $item->note }}</p>
+                                        <p class="mt-2 max-w-sm text-xs leading-5 text-slate-400">{{ $item->note }}</p>
                                     @endif
                                 </td>
                                 <td class="px-6 py-5">

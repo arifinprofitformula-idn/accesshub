@@ -20,11 +20,17 @@ class LinkResource extends Resource
 {
     protected static ?string $model = Link::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-link';
+
+    protected static string|BackedEnum|null $activeNavigationIcon = 'heroicon-s-link';
 
     protected static ?string $recordTitleAttribute = 'title';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Workspace';
+
+    protected static ?string $navigationLabel = 'Links';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
@@ -56,6 +62,16 @@ class LinkResource extends Resource
             'create' => CreateLink::route('/create'),
             'edit' => EditLink::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::query()->where('status', 'active')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'info';
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

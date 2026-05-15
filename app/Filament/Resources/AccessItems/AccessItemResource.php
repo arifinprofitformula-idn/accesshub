@@ -20,11 +20,17 @@ class AccessItemResource extends Resource
 {
     protected static ?string $model = AccessItem::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
+
+    protected static string|BackedEnum|null $activeNavigationIcon = 'heroicon-s-shield-check';
 
     protected static ?string $recordTitleAttribute = 'platform_name';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Workspace';
+
+    protected static ?string $navigationLabel = 'Access';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -55,6 +61,16 @@ class AccessItemResource extends Resource
             'create' => CreateAccessItem::route('/create'),
             'edit' => EditAccessItem::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::query()->where('status', 'active')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\AdminLogin;
+use App\Filament\Widgets\AdminQuickActions;
+use App\Filament\Widgets\AdminStatsOverview;
 use App\Http\Middleware\EnsureUserIsActive;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -34,8 +36,12 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/accesshub-auth-logo.png'))
             ->brandLogoHeight('4rem')
             ->colors([
-                'primary' => Color::Sky,
+                'primary' => Color::Cyan,
             ])
+            ->renderHook(
+                PanelsRenderHook::STYLES_AFTER,
+                fn (): string => view('filament.admin.panel-theme')->render(),
+            )
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
                 fn (): string => view('filament.admin.auth-theme')->render(),
@@ -53,6 +59,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
+                AdminQuickActions::class,
+                AdminStatsOverview::class,
                 AccountWidget::class,
             ])
             ->middleware([

@@ -174,7 +174,7 @@
     }
 
     .fi-panel-admin .fi-input::placeholder {
-        color: #3d2b65 !important;
+        color: #8b9bb3 !important;
     }
 
     /* Password toggle icon */
@@ -195,7 +195,7 @@
 
     .fi-panel-admin .fi-checkbox label,
     .fi-panel-admin .fi-fo-field-wrp .fi-checkbox span {
-        color: #64748b !important;
+        color: #cbd5e1 !important;
         font-size: 0.8rem !important;
     }
 

@@ -12,8 +12,6 @@
             install:        '[data-pwa-install]',
             installCard:    '[data-pwa-install-card]',
             installDismiss: '[data-pwa-install-dismiss]',
-            status:         '[data-pwa-status]',
-            statusLabel:    '[data-pwa-status-label]',
             update:         '[data-pwa-update]',
             updateRefresh:  '[data-pwa-update-refresh]',
         };
@@ -117,17 +115,6 @@
             if (el) el.hidden = true;
         };
 
-        /* ── Online status ────────────────────────────────────── */
-
-        const syncStatus = () => {
-            const chip  = q(SEL.status);
-            const label = q(SEL.statusLabel);
-            if (!chip || !label) return;
-            const online = navigator.onLine;
-            chip.dataset.state = online ? 'online' : 'offline';
-            label.textContent  = online ? 'Online' : 'Offline';
-        };
-
         /* ── Service worker ───────────────────────────────────── */
 
         const registerWorker = async () => {
@@ -185,9 +172,6 @@
             if (_PWA_DEV) console.info('[PWA] App installed.');
         });
 
-        window.addEventListener('online',  syncStatus);
-        window.addEventListener('offline', syncStatus);
-
         // SW took over → reload to use new version
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (refreshing) return;
@@ -239,7 +223,6 @@
         /* ── Init ─────────────────────────────────────────────── */
 
         document.addEventListener('DOMContentLoaded', () => {
-            syncStatus();
             registerWorker();
 
             // Show install card — DEV: always try; PROD: only if beforeinstallprompt set
