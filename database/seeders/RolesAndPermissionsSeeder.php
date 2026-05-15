@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -11,6 +13,10 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! Schema::hasTable('permissions') || ! Schema::hasTable('roles')) {
+            throw new RuntimeException('Tabel permissions/roles belum tersedia. Jalankan php artisan migrate --force sampai sukses penuh sebelum menjalankan seeder.');
+        }
+
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $permissions = [

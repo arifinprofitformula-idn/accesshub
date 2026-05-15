@@ -533,6 +533,11 @@ Jika queue dipakai:
 php artisan queue:restart
 ```
 
+Penting:
+
+- jalankan `db:seed` hanya setelah `php artisan migrate --force` selesai tanpa error
+- jika memakai satu baris command, gunakan `&&` agar seeder tidak jalan saat migrasi gagal
+
 ## 20. Checklist Security Production
 
 Checklist wajib sebelum go live:
