@@ -1,129 +1,140 @@
 <script>
-    const _PWA_DEV = {{ app()->environment('production') ? 'false' : 'true' }};
+    const _PWA_DEV = /localhost|\.test$|\.local$|127\.0\.0\.1/.test(location.hostname);
 
     (() => {
         if (!('serviceWorker' in navigator)) {
             return;
         }
 
-        const selectors = {
-            install: '[data-pwa-install]',
-            installCard: '[data-pwa-install-card]',
+        /* ── Config ───────────────────────────────────────────── */
+
+        const SEL = {
+            install:        '[data-pwa-install]',
+            installCard:    '[data-pwa-install-card]',
             installDismiss: '[data-pwa-install-dismiss]',
-            status: '[data-pwa-status]',
-            statusLabel: '[data-pwa-status-label]',
-            update: '[data-pwa-update]',
-            updateRefresh: '[data-pwa-update-refresh]',
+            status:         '[data-pwa-status]',
+            statusLabel:    '[data-pwa-status-label]',
+            update:         '[data-pwa-update]',
+            updateRefresh:  '[data-pwa-update-refresh]',
         };
 
-        const installDismissKey      = 'accesshub-pwa-install-dismissed-at';
-        const installDismissSession  = 'accesshub-pwa-install-dismissed-session';
-        const installedKey           = 'accesshub-pwa-installed'; // permanent flag
-        const installDismissDuration = 1000 * 60 * 60 * 24 * 14;
+        const KEY_DISMISSED_AT = 'accesshub-pwa-dismissed-at';
+        const KEY_SESSION      = 'accesshub-pwa-dismissed-session';
+        const KEY_INSTALLED    = 'accesshub-pwa-installed';
+        const DISMISS_DURATION = 1000 * 60 * 60 * 24 * 14; // 14 days
 
-        let deferredInstallPrompt = null;
-        let waitingWorker         = null;
-        let refreshing            = false;
+        let deferredPrompt = null;
+        let waitingWorker  = null;
+        let refreshing     = false;
 
-        /* ── Helpers ──────────────────────────────────────────── */
+        /* ── Storage helpers ──────────────────────────────────── */
+
+        const store = {
+            get:    (s, k)    => { try { return s.getItem(k); }    catch { return null; } },
+            set:    (s, k, v) => { try { s.setItem(k, v); }        catch { /* ignore */ } },
+            remove: (s, k)    => { try { s.removeItem(k); }        catch { /* ignore */ } },
+        };
+
+        /* ── PWA state checks ─────────────────────────────────── */
 
         const isStandalone = () =>
             window.matchMedia('(display-mode: standalone)').matches ||
-            window.navigator.standalone === true;
-
-        const get = (sel) => document.querySelector(sel);
-
-        const safeGet = (storage, key) => {
-            try { return storage.getItem(key); } catch { return null; }
-        };
-        const safeSet = (storage, key, value) => {
-            try { storage.setItem(key, value); } catch { /* ignore */ }
-        };
-        const safeDel = (storage, key) => {
-            try { storage.removeItem(key); } catch { /* ignore */ }
-        };
-
-        /* ── Installed detection ──────────────────────────────── */
+            navigator.standalone === true;
 
         const isInstalled = () =>
-            safeGet(localStorage, installedKey) === '1';
+            store.get(localStorage, KEY_INSTALLED) === '1';
 
-        const markInstalled = () =>
-            safeSet(localStorage, installedKey, '1');
-
-        /* ── Dismiss logic (for users who clicked X) ──────────── */
-
-        const isInstallDismissed = () => {
-            // Already installed permanently → never show again
-            if (isInstalled()) return true;
-
-            // Dismissed this session
-            if (safeGet(sessionStorage, installDismissSession) === '1') return true;
-
-            // Dismissed within 14-day window
-            const ts = Number.parseInt(safeGet(localStorage, installDismissKey) || '', 10);
-            if (!Number.isFinite(ts)) return false;
-            if ((Date.now() - ts) < installDismissDuration) return true;
-
-            safeDel(localStorage, installDismissKey);
+        const isDismissed = () => {
+            if (isInstalled())                                          return true;
+            if (store.get(sessionStorage, KEY_SESSION) === '1')        return true;
+            const ts = Number.parseInt(store.get(localStorage, KEY_DISMISSED_AT) || '', 10);
+            if (!Number.isFinite(ts))                                   return false;
+            if ((Date.now() - ts) < DISMISS_DURATION)                  return true;
+            store.remove(localStorage, KEY_DISMISSED_AT);
             return false;
         };
 
-        const setInstallDismissed = () => {
-            safeSet(sessionStorage, installDismissSession, '1');
-            safeSet(localStorage, installDismissKey, String(Date.now()));
+        const markDismissed = () => {
+            store.set(sessionStorage, KEY_SESSION, '1');
+            store.set(localStorage, KEY_DISMISSED_AT, String(Date.now()));
         };
 
-        /* ── Card visibility ──────────────────────────────────── */
+        const markInstalled = () => {
+            store.set(localStorage, KEY_INSTALLED, '1');
+            store.remove(sessionStorage, KEY_SESSION);
+            store.remove(localStorage, KEY_DISMISSED_AT);
+        };
+
+        /* ── Card helpers ─────────────────────────────────────── */
+
+        const q = (sel) => document.querySelector(sel);
 
         const hideInstallCard = () => {
-            const card = get(selectors.installCard);
-            if (card) card.hidden = true;
+            const el = q(SEL.installCard);
+            if (el) el.hidden = true;
+        };
+
+        const showInstallCard = (devMode = false) => {
+            const el = q(SEL.installCard);
+            if (!el) return;
+
+            if (devMode) {
+                // In dev, show card but disable install button (no real prompt)
+                el.hidden = false;
+                const btn = el.querySelector(SEL.install);
+                if (btn && !deferredPrompt) {
+                    btn.textContent = 'Install (HTTPS diperlukan)';
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor  = 'not-allowed';
+                }
+                return;
+            }
+
+            el.hidden = false;
         };
 
         const maybeShowInstallCard = () => {
-            const card = get(selectors.installCard);
-            if (!card) return;
+            if (isStandalone() || isDismissed()) return;
 
-            const shouldShow =
-                deferredInstallPrompt !== null &&
-                !isStandalone() &&
-                !isInstallDismissed();
+            if (deferredPrompt) {
+                showInstallCard();
+                return;
+            }
 
-            card.hidden = !shouldShow;
+            // DEV fallback: show card without real install prompt for UI testing
+            if (_PWA_DEV) {
+                showInstallCard(true);
+            }
         };
 
         const showUpdateCard = () => {
-            const card = get(selectors.update);
-            if (card) card.hidden = false;
+            const el = q(SEL.update);
+            if (el) el.hidden = false;
         };
 
         const hideUpdateCard = () => {
-            const card = get(selectors.update);
-            if (card) card.hidden = true;
+            const el = q(SEL.update);
+            if (el) el.hidden = true;
         };
 
-        /* ── Online / offline status ──────────────────────────── */
+        /* ── Online status ────────────────────────────────────── */
 
-        const updateOnlineStatus = () => {
-            const chip  = get(selectors.status);
-            const label = get(selectors.statusLabel);
+        const syncStatus = () => {
+            const chip  = q(SEL.status);
+            const label = q(SEL.statusLabel);
             if (!chip || !label) return;
-
             const online = navigator.onLine;
             chip.dataset.state = online ? 'online' : 'offline';
             label.textContent  = online ? 'Online' : 'Offline';
         };
 
-        /* ── Service worker registration ──────────────────────── */
+        /* ── Service worker ───────────────────────────────────── */
 
         const registerWorker = async () => {
             try {
                 const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
 
-                if (_PWA_DEV) {
-                    console.info('[AccessHub PWA] Service worker registered.');
-                }
+                if (_PWA_DEV) console.info('[PWA] Service worker registered.');
 
                 if (reg.waiting) {
                     waitingWorker = reg.waiting;
@@ -131,48 +142,53 @@
                 }
 
                 reg.addEventListener('updatefound', () => {
-                    const newWorker = reg.installing;
-                    if (!newWorker) return;
-
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            waitingWorker = newWorker;
+                    const w = reg.installing;
+                    if (!w) return;
+                    w.addEventListener('statechange', () => {
+                        if (w.state === 'installed' && navigator.serviceWorker.controller) {
+                            waitingWorker = w;
                             showUpdateCard();
                         }
                     });
                 });
             } catch (err) {
-                if (_PWA_DEV) {
-                    console.warn('[AccessHub PWA] Service worker registration failed.', err);
-                }
+                if (_PWA_DEV) console.warn('[PWA] SW registration failed:', err);
             }
         };
 
-        /* ── Event: browser ready to prompt install ───────────── */
+        /* ── Browser events ───────────────────────────────────── */
 
+        // Capture install prompt (requires HTTPS in production)
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Only capture if not already installed
-            if (isInstalled() || isStandalone()) return;
             e.preventDefault();
-            deferredInstallPrompt = e;
+            deferredPrompt = e;
+
+            // Re-enable install button in case it was disabled by dev fallback
+            const card = q(SEL.installCard);
+            if (card) {
+                const btn = card.querySelector(SEL.install);
+                if (btn) {
+                    btn.textContent = 'Install Sekarang';
+                    btn.style.opacity = '';
+                    btn.style.cursor  = '';
+                }
+            }
+
             maybeShowInstallCard();
         });
 
-        /* ── Event: app successfully installed ────────────────── */
-
+        // App installed by OS/browser
         window.addEventListener('appinstalled', () => {
-            deferredInstallPrompt = null;
-            markInstalled();          // permanent — never show popup again
+            deferredPrompt = null;
+            markInstalled();
             hideInstallCard();
+            if (_PWA_DEV) console.info('[PWA] App installed.');
         });
 
-        /* ── Event: online / offline ──────────────────────────── */
+        window.addEventListener('online',  syncStatus);
+        window.addEventListener('offline', syncStatus);
 
-        window.addEventListener('online',  updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-
-        /* ── Event: SW controller changed → reload ────────────── */
-
+        // SW took over → reload to use new version
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (refreshing) return;
             refreshing = true;
@@ -184,61 +200,53 @@
         document.addEventListener('click', async (e) => {
 
             // ① Install button
-            const installBtn = e.target.closest(selectors.install);
+            const installBtn = e.target.closest(SEL.install);
             if (installBtn) {
-                if (!deferredInstallPrompt) return;
-
-                deferredInstallPrompt.prompt();
-                const { outcome } = await deferredInstallPrompt.userChoice;
-                deferredInstallPrompt = null;
-
-                if (outcome === 'accepted') {
-                    markInstalled();
-                }
-
+                if (!deferredPrompt) return; // no-op in dev without real prompt
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if (outcome === 'accepted') markInstalled();
                 hideInstallCard();
                 return;
             }
 
-            // ② Close / dismiss install card
-            const dismissBtn = e.target.closest(selectors.installDismiss);
-            if (dismissBtn) {
+            // ② Close install card
+            const closeBtn = e.target.closest(SEL.installDismiss);
+            if (closeBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                setInstallDismissed();
+                markDismissed();
                 hideInstallCard();
                 return;
             }
 
-            // ③ Refresh / update button
-            const refreshBtn = e.target.closest(selectors.updateRefresh);
+            // ③ Refresh / apply update
+            const refreshBtn = e.target.closest(SEL.updateRefresh);
             if (refreshBtn) {
                 hideUpdateCard();
-
                 if (waitingWorker) {
-                    // Tell waiting SW to take over; controllerchange will reload
                     waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-                    // Fallback: force reload after 600 ms if controllerchange doesn't fire
+                    // Force reload as fallback if controllerchange doesn't fire
                     setTimeout(() => window.location.reload(), 600);
                 } else {
-                    // No waiting worker → just reload
                     window.location.reload();
                 }
                 return;
             }
         });
 
-        /* ── Init on DOM ready ────────────────────────────────── */
+        /* ── Init ─────────────────────────────────────────────── */
 
         document.addEventListener('DOMContentLoaded', () => {
-            updateOnlineStatus();
+            syncStatus();
+            registerWorker();
 
-            // Don't even try to show install card if PWA is already installed
-            if (!isInstalled() && !isStandalone()) {
+            // Show install card — DEV: always try; PROD: only if beforeinstallprompt set
+            if (!isStandalone() && !isInstalled()) {
                 maybeShowInstallCard();
             }
-
-            registerWorker();
         });
+
     })();
 </script>
