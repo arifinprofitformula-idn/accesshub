@@ -223,6 +223,83 @@ cd /home/arvadigi/repositories/accesshub
 php artisan migrate --force
 ```
 
+### Jika muncul error `Table 'users' already exists`
+
+Error seperti ini berarti database yang kamu pakai sudah memiliki tabel Laravel lama, tetapi status migration di database belum sinkron.
+
+Contoh error:
+
+```text
+SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'users' already exists
+```
+
+Penyebab paling umum:
+
+- database yang dipakai bukan database kosong
+- tabel `users` sudah pernah dibuat manual atau dari install lama
+- tabel `migrations` kosong atau belum ada, sehingga Laravel mengira semua migration belum pernah dijalankan
+
+### Cara cek kondisi database
+
+Masuk ke phpMyAdmin atau MySQL lalu cek:
+
+- apakah tabel `users` sudah ada
+- apakah tabel `migrations` ada
+- apakah tabel `migrations` berisi data migration lama
+
+### Solusi aman jika ini install baru dan data lama tidak dipakai
+
+Jika database memang boleh dikosongkan:
+
+1. hapus semua tabel lama dari database lewat phpMyAdmin
+2. pastikan database kosong
+3. jalankan ulang:
+
+```bash
+cd /home/arvadigi/repositories/accesshub
+php artisan migrate --force
+php artisan db:seed --force
+```
+
+Ini adalah solusi paling bersih untuk instalasi pertama.
+
+### Solusi aman jika database lama masih ingin dipakai
+
+Jika database sudah berisi data penting, jangan hapus tabel sembarangan.
+
+Lakukan langkah berikut:
+
+1. backup database terlebih dahulu
+2. cek tabel mana yang sudah ada
+3. sinkronkan database lama secara manual
+
+Dalam kondisi ini, biasanya ada 2 pilihan:
+
+- buat database baru yang kosong khusus untuk AccessHub
+- atau rapikan struktur migration lama agar sesuai dengan schema AccessHub saat ini
+
+Untuk shared hosting, opsi terbaik biasanya:
+
+- buat database baru yang kosong
+- update `.env` agar memakai database baru tersebut
+- jalankan migration dari awal
+
+### Rekomendasi untuk AccessHub
+
+Untuk deploy pertama AccessHub di shared hosting, paling aman gunakan:
+
+- database baru yang kosong
+- lalu jalankan migration dan seeder dari nol
+
+Langkah ringkas:
+
+```bash
+cd /home/arvadigi/repositories/accesshub
+php artisan config:clear
+php artisan migrate --force
+php artisan db:seed --force
+```
+
 Jika ini install pertama dan kamu juga ingin langsung isi data awal:
 
 ```bash
@@ -497,6 +574,28 @@ Cek:
 - password benar atau tidak
 - user aktif atau tidak
 - database session sudah termigrasi atau belum
+
+### Error `Table already exists` saat migrate
+
+Cek:
+
+- apakah database yang dipakai benar-benar kosong
+- apakah `.env` menunjuk ke database yang benar
+- apakah tabel `users` atau tabel lain sudah ada dari install lama
+- apakah tabel `migrations` kosong atau belum ada
+
+Solusi paling aman untuk install pertama:
+
+- buat database baru yang kosong
+- update `.env`
+- jalankan ulang:
+
+```bash
+cd /home/arvadigi/repositories/accesshub
+php artisan config:clear
+php artisan migrate --force
+php artisan db:seed --force
+```
 
 ### Storage link gagal
 
