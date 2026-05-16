@@ -57,6 +57,11 @@ class UserResource extends Resource
         return $query;
     }
 
+    public static function canAccess(): bool
+    {
+        return Auth::user()?->can('users.view') ?? false;
+    }
+
     public static function getPages(): array
     {
         return [

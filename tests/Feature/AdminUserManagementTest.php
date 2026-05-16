@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Filament\Resources\Users\Pages\ListUsers;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AdminUserManagementTest extends TestCase
@@ -173,6 +175,22 @@ class AdminUserManagementTest extends TestCase
             ->assertSessionHasErrors('email');
 
         $this->assertGuest();
+    }
+
+    public function test_admin_can_approve_pending_user_from_user_management(): void
+    {
+        $admin = $this->makeAdmin();
+        $pending = $this->makeUser('user', false);
+
+        $this->actingAs($admin);
+
+        Livewire::test(ListUsers::class)
+            ->callTableAction('approve', $pending);
+
+        $pending->refresh();
+
+        $this->assertNotNull($pending->approved_at);
+        $this->assertTrue($pending->is_active);
     }
 
     // --- Approval guard ---

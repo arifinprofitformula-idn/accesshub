@@ -13,4 +13,11 @@ class EditUser extends EditRecord
     {
         return [];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['whatsapp'] = \App\Models\User::normalizeWhatsapp($data['whatsapp'] ?? null);
+
+        return $data;
+    }
 }

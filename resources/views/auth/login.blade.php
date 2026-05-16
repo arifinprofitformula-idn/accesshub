@@ -348,10 +348,7 @@
                 color: var(--muted);
                 font-size: 14px;
                 line-height: 1.7;
-            }
-
-            .helper strong {
-                color: #e2e8f0;
+                text-align: center;
             }
 
             @media (max-width: 960px) {
@@ -488,6 +485,12 @@
 
                         <button type="submit" class="button">Masuk ke Dashboard</button>
                     </form>
+
+                    <div class="helper">
+                        <a class="link" href="{{ route('register', absolute: false) }}">
+                            Belum punya akses? Klik disini untuk Request Access
+                        </a>
+                    </div>
 
                 </section>
             </div>

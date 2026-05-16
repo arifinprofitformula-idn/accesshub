@@ -7,8 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -30,22 +29,37 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+        $validated = $request->validate([
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'whatsapp' => ['required', 'string', 'max:30', 'min:8', 'regex:/^[0-9+\-\s\(\)]+$/', 'unique:'.User::class.',whatsapp'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'whatsapp.required' => 'Nomor WhatsApp wajib diisi.',
+            'whatsapp.unique' => 'Nomor WhatsApp sudah terdaftar.',
+            'whatsapp.regex' => 'Format nomor WhatsApp tidak valid.',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            // approved_at is intentionally null — admin must approve before access is granted
-        ]);
+        $whatsapp = User::normalizeWhatsapp($validated['whatsapp']);
+        $name = User::deriveNameFromEmail($validated['email'], $whatsapp);
+
+        $user = DB::transaction(function () use ($validated, $name, $whatsapp): User {
+            $user = User::create([
+                'name' => $name,
+                'email' => $validated['email'],
+                'whatsapp' => $whatsapp,
+                'password' => $validated['password'],
+                'approved_at' => null,
+                'is_active' => true,
+            ]);
+
+            $user->assignRole('user');
+
+            return $user;
+        });
 
         event(new Registered($user));
 
         return redirect()->to(route('login', absolute: false))
-            ->with('status', 'Pendaftaran berhasil. Akun Anda sedang menunggu persetujuan admin.');
+            ->with('status', 'Registrasi berhasil. Akun Anda sedang menunggu persetujuan admin.');
     }
 }

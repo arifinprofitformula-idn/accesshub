@@ -23,6 +23,7 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'name',
         'email',
+        'whatsapp',
         'password',
         'avatar',
         'is_active',
@@ -52,6 +53,34 @@ class User extends Authenticatable implements FilamentUser
     public function isApproved(): bool
     {
         return filled($this->approved_at);
+    }
+
+    public static function normalizeWhatsapp(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim($value);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $normalized = preg_replace('/[\s\-\(\)]+/', '', $normalized);
+
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    public static function deriveNameFromEmail(string $email, ?string $fallback = null): string
+    {
+        $localPart = trim((string) str($email)->before('@'));
+
+        if ($localPart !== '') {
+            return $localPart;
+        }
+
+        return $fallback ?: 'user';
     }
 
     public function createdLinks(): HasMany

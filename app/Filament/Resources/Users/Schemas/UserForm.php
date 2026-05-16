@@ -30,6 +30,14 @@ class UserForm
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
+                        TextInput::make('whatsapp')
+                            ->label('WhatsApp')
+                            ->tel()
+                            ->maxLength(30)
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->unique(ignoreRecord: true)
+                            ->placeholder('08xxxxxxxxxx atau +62xxxxxxxxxx')
+                            ->helperText('Dipakai untuk kontak admin dan registrasi mandiri.'),
                         TextInput::make('password')
                             ->label('Password')
                             ->password()
