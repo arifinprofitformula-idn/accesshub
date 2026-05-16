@@ -4,33 +4,52 @@ namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Link;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
     public function quickStore(Request $request): JsonResponse
     {
-        $this->authorize('create', Category::class);
+        abort_unless(
+            ($request->user()?->can('create', Link::class) ?? false) || ($request->user()?->can('create', Category::class) ?? false),
+            403,
+        );
 
         $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:100',
-                Rule::unique('categories', 'name'),
             ],
         ], [
             'name.required' => 'Nama kategori tidak boleh kosong.',
             'name.max' => 'Nama kategori maksimal 100 karakter.',
-            'name.unique' => 'Kategori dengan nama ini sudah ada.',
         ]);
 
+        $name = Str::of($validated['name'])->trim()->squish()->toString();
+
+        $existingCategory = Category::query()
+            ->whereRaw('LOWER(name) = ?', [Str::lower($name)])
+            ->first();
+
+        if ($existingCategory) {
+            if (! $existingCategory->is_active) {
+                $existingCategory->update(['is_active' => true]);
+            }
+
+            return response()->json([
+                'id' => $existingCategory->id,
+                'name' => $existingCategory->name,
+                'existing' => true,
+            ]);
+        }
+
         $category = Category::create([
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
+            'name' => $name,
+            'slug' => $this->generateUniqueSlug($name),
             'is_active' => true,
         ]);
 
@@ -38,5 +57,19 @@ class CategoryController extends Controller
             'id' => $category->id,
             'name' => $category->name,
         ], 201);
+    }
+
+    protected function generateUniqueSlug(string $name): string
+    {
+        $baseSlug = Str::slug($name);
+        $slug = $baseSlug !== '' ? $baseSlug : 'kategori';
+        $suffix = 2;
+
+        while (Category::query()->where('slug', $slug)->exists()) {
+            $slug = ($baseSlug !== '' ? $baseSlug : 'kategori').'-'.$suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

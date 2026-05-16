@@ -101,6 +101,7 @@
         ])->filter(fn (array $item): bool => $item['visible']);
 
         $profileActive = request()->routeIs('profile.edit');
+        $adminActive = request()->is('admin') || request()->is('admin/*');
     @endphp
     <body class="min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.12),transparent_24%),linear-gradient(180deg,#020617_0%,#081120_100%)] font-sans text-slate-100 antialiased">
         <div class="min-h-screen">
@@ -132,7 +133,7 @@
                             </a>
 
                             @if (auth()->user()->hasAnyRole(['super_admin', 'admin']))
-                                <a href="{{ url('/admin') }}" class="ah-secondary-btn gap-2">
+                                <a href="{{ url('/admin') }}" class="{{ $adminActive ? 'border-cyan-300/25 bg-cyan-400/12 text-white' : '' }} ah-secondary-btn gap-2">
                                     {!! $icon('admin', 'h-4 w-4') !!}
                                     Admin
                                 </a>

@@ -171,10 +171,17 @@ document.addEventListener('alpine:init', () => {
                     return;
                 }
                 const select = document.getElementById('category_id');
-                const opt = new Option(data.name, data.id, true, true);
-                select.add(opt, select.options.length - 2);
+                const hasOption = Array.from(select.options).some(option => option.value === String(data.id));
+
+                if (!hasOption) {
+                    const opt = new Option(data.name, data.id, true, true);
+                    select.add(opt, select.options.length - 2);
+                }
+
                 select.value = data.id;
-                this.successMsg = 'Kategori "' + data.name + '" berhasil ditambahkan dan dipilih.';
+                this.successMsg = data.existing
+                    ? 'Kategori "' + data.name + '" sudah ada dan langsung dipilih.'
+                    : 'Kategori "' + data.name + '" berhasil ditambahkan dan dipilih.';
                 this.newName = '';
                 this.showNew = false;
             })
