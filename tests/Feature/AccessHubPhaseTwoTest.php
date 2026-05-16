@@ -38,6 +38,7 @@ class AccessHubPhaseTwoTest extends TestCase
             'category_id' => $this->category->id,
             'visibility' => 'private',
             'created_by' => $staff->id,
+            'status' => 'active',
         ]);
 
         $otherInternal = Link::factory()->create([
@@ -45,6 +46,7 @@ class AccessHubPhaseTwoTest extends TestCase
             'category_id' => $this->category->id,
             'visibility' => 'internal',
             'created_by' => $other->id,
+            'status' => 'active',
         ]);
 
         $otherPrivate = Link::factory()->create([
@@ -52,6 +54,7 @@ class AccessHubPhaseTwoTest extends TestCase
             'category_id' => $this->category->id,
             'visibility' => 'private',
             'created_by' => $other->id,
+            'status' => 'active',
         ]);
 
         $response = $this->actingAs($staff)->get(route('app.links.index'));

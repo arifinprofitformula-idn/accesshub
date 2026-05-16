@@ -45,4 +45,23 @@ class MigrationSchema
             return false;
         }
     }
+
+    public static function hasIndex(string $table, string $index): bool
+    {
+        try {
+            $database = DB::getDatabaseName();
+
+            if (! $database) {
+                return false;
+            }
+
+            return DB::table('information_schema.STATISTICS')
+                ->where('TABLE_SCHEMA', $database)
+                ->where('TABLE_NAME', $table)
+                ->where('INDEX_NAME', $index)
+                ->exists();
+        } catch (Throwable) {
+            return false;
+        }
+    }
 }

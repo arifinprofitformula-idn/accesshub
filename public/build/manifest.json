@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-Bpm-acE-.css",
+    "file": "assets/app-CIydB2Bz.css",
     "name": "app",
     "names": [
       "app.css"
@@ -8,10 +8,25 @@
     "src": "resources/css/app.css",
     "isEntry": true
   },
+  "resources/css/auth.css": {
+    "file": "assets/auth-BvtzlC5e.css",
+    "name": "auth",
+    "names": [
+      "auth.css"
+    ],
+    "src": "resources/css/auth.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-MvBNrVg4.js",
+    "file": "assets/app-C2t5bhMs.js",
     "name": "app",
     "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/pwa.js": {
+    "file": "assets/pwa-36kDUSOj.js",
+    "name": "pwa",
+    "src": "resources/js/pwa.js",
     "isEntry": true
   }
 }

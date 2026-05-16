@@ -11,6 +11,9 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        @php
+            $viteEntries = ['resources/css/auth.css'];
+        @endphp
         @include('layouts.partials.pwa-head')
         @include('layouts.partials.asset-loader')
     </head>
@@ -30,19 +33,11 @@
 
                             <div class="relative rounded-[2rem] border border-white/8 bg-slate-950/35 p-8 backdrop-blur-sm">
                                 <div class="mb-8 flex items-center gap-4">
-                                    @if (file_exists(public_path('images/accesshub-auth-logo.png')))
-                                        <img
-                                            src="{{ asset('images/accesshub-auth-logo.png') }}"
-                                            alt="AccessHub logo"
-                                            class="h-24 w-24 rounded-[1.5rem] object-cover shadow-[0_0_45px_rgba(34,211,238,0.18)]"
-                                        >
-                                    @else
-                                        <div class="accesshub-logo-fallback">
-                                            <svg viewBox="0 0 24 24" class="relative z-10 h-10 w-10 text-cyan-200" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 13.5l3-3m-7 6 3.25-3.25m4 4.75 3.25-3.25M7.5 7.5l2-2a3 3 0 014.243 0l2.757 2.757a3 3 0 010 4.243l-2 2m-5 0-2.757-2.757a3 3 0 010-4.243l2-2" />
-                                            </svg>
-                                        </div>
-                                    @endif
+                                    <img
+                                        src="{{ asset('icons/icon-192.png') }}"
+                                        alt="AccessHub logo"
+                                        class="h-24 w-24 rounded-[1.5rem] object-cover shadow-[0_0_45px_rgba(34,211,238,0.18)]"
+                                    >
                                     <div>
                                         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300/80">AccessHub</p>
                                         <h1 class="mt-2 text-4xl font-semibold tracking-tight text-slate-50">Work access, organized like a command center.</h1>
@@ -75,19 +70,11 @@
                         <div class="glass-card neon-border mx-auto w-full max-w-lg p-5 sm:p-8">
                             <div class="mb-8 text-center">
                                 <a href="{{ route('login', absolute: false) }}" class="inline-flex flex-col items-center gap-4">
-                                    @if (file_exists(public_path('images/accesshub-auth-logo.png')))
-                                        <img
-                                            src="{{ asset('images/accesshub-auth-logo.png') }}"
-                                            alt="AccessHub logo"
-                                            class="h-20 w-20 rounded-[1.5rem] object-cover shadow-[0_0_45px_rgba(34,211,238,0.2)] sm:h-24 sm:w-24"
-                                        >
-                                    @else
-                                        <div class="accesshub-logo-fallback">
-                                            <svg viewBox="0 0 24 24" class="relative z-10 h-10 w-10 text-cyan-200" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 13.5l3-3m-7 6 3.25-3.25m4 4.75 3.25-3.25M7.5 7.5l2-2a3 3 0 014.243 0l2.757 2.757a3 3 0 010 4.243l-2 2m-5 0-2.757-2.757a3 3 0 010-4.243l2-2" />
-                                            </svg>
-                                        </div>
-                                    @endif
+                                    <img
+                                        src="{{ asset('icons/icon-192.png') }}"
+                                        alt="AccessHub logo"
+                                        class="h-20 w-20 rounded-[1.5rem] object-cover shadow-[0_0_45px_rgba(34,211,238,0.2)] sm:h-24 sm:w-24"
+                                    >
                                     <div>
                                         <p class="text-2xl font-semibold tracking-tight text-slate-50">AccessHub</p>
                                         <p class="mt-1 text-xs font-medium uppercase tracking-[0.35em] text-slate-400">Your Work Access Command Center</p>
@@ -102,6 +89,5 @@
             </div>
         </div>
 
-        @include('layouts.partials.pwa-register')
     </body>
 </html>

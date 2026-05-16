@@ -206,11 +206,7 @@
             <section class="panel">
                 <div class="brand">
                     <div class="logo">
-                        @if (file_exists(public_path('images/accesshub-auth-logo.png')))
-                            <img src="{{ asset('images/accesshub-auth-logo.png') }}" alt="AccessHub logo">
-                        @else
-                            <div class="logo-fallback">AH</div>
-                        @endif
+                        <img src="{{ asset('icons/icon-192.png') }}" alt="AccessHub logo">
                     </div>
 
                     <div>

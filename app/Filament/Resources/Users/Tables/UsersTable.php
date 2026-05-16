@@ -32,7 +32,7 @@ class UsersTable
                     ->toggleable(),
                 TextColumn::make('roles_label')
                     ->label('Role')
-                    ->state(fn (User $record): string => $record->getRoleNames()->implode(', '))
+                    ->state(fn (User $record): string => $record->roles->pluck('name')->implode(', '))
                     ->badge(),
                 TextColumn::make('user_status')
                     ->label('Status')

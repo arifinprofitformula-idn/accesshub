@@ -27,7 +27,11 @@ class AccessItemController extends Controller
         $user = $request->user();
 
         $accessItems = AccessItem::query()
-            ->with(['category', 'creator', 'visibleToRoles'])
+            ->with([
+                'category:id,name',
+                'creator:id,name',
+                'visibleToRoles:id,name',
+            ])
             ->visibleTo($user)
             ->search($validated['search'] ?? null)
             ->when($validated['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
@@ -38,10 +42,7 @@ class AccessItemController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $categories = Category::activeOptions();
 
         $pics = AccessItem::query()
             ->visibleTo($user)

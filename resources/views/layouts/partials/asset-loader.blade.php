@@ -2,6 +2,7 @@
     $viteEntries = $viteEntries ?? ['resources/css/app.css', 'resources/js/app.js'];
     $hotFile = public_path('hot');
     $manifestPath = public_path('build/manifest.json');
+    $hasJavascriptEntry = collect($viteEntries)->contains(fn (string $entry): bool => str_ends_with($entry, '.js'));
 @endphp
 
 @if (file_exists($hotFile))
@@ -47,7 +48,9 @@
     @endforeach
 @else
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    @if ($hasJavascriptEntry)
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    @endif
     <style>
         [x-cloak] {
             display: none !important;

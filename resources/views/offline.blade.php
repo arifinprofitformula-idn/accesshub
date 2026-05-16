@@ -170,11 +170,7 @@
         <main class="page">
             <section class="card">
                 <div class="logo">
-                    @if (file_exists(public_path('images/accesshub-auth-logo.png')))
-                        <img src="{{ asset('images/accesshub-auth-logo.png') }}" alt="AccessHub logo">
-                    @else
-                        <span style="font-size: 28px; font-weight: 700; color: #e0f2fe;">AH</span>
-                    @endif
+                    <img src="{{ asset('icons/icon-192.png') }}" alt="AccessHub logo">
                 </div>
 
                 <p class="eyebrow">Offline Mode</p>

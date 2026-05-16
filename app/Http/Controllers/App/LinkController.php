@@ -12,6 +12,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -23,14 +25,12 @@ class LinkController extends Controller
 
         $user = $request->user();
         $filters = $this->validateFilters($request);
-        $links = $this->buildFilteredQuery($user, $filters)
-            ->paginate(12)
-            ->withQueryString();
+        $links = $this->paginatedDashboardLinks($user, $filters);
 
         return view('app.dashboard', [
             'links' => $links,
             'categories' => $this->categories(),
-            'favoriteIds' => $this->favoriteIds($user),
+            'favoriteIds' => $this->favoriteIds($user, $links),
             'filters' => $filters,
         ]);
     }
@@ -41,13 +41,12 @@ class LinkController extends Controller
 
         $user = $request->user();
         $filters = $this->validateFilters($request);
+        $links = $this->paginatedLinks($user, $filters);
 
         return view('app.links.index', [
-            'links' => $this->buildFilteredQuery($user, $filters)
-                ->paginate(12)
-                ->withQueryString(),
+            'links' => $links,
             'categories' => $this->categories(),
-            'favoriteIds' => $this->favoriteIds($user),
+            'favoriteIds' => $this->favoriteIds($user, $links),
             'filters' => $filters,
         ]);
     }
@@ -58,13 +57,12 @@ class LinkController extends Controller
 
         $user = $request->user();
         $filters = $this->validateFilters($request);
+        $links = $this->paginatedLinks($user, $filters);
 
         return view('app.links.manage', [
-            'links' => $this->buildFilteredQuery($user, $filters)
-                ->paginate(12)
-                ->withQueryString(),
+            'links' => $links,
             'categories' => $this->categories(),
-            'favoriteIds' => $this->favoriteIds($user),
+            'favoriteIds' => $this->favoriteIds($user, $links),
             'filters' => $filters,
         ]);
     }
@@ -110,7 +108,7 @@ class LinkController extends Controller
     {
         $this->authorize('update', $link);
 
-        $link->load('tags');
+        $link->load(['tags:id,name']);
 
         return view('app.links.edit', [
             'link' => $link,
@@ -221,8 +219,21 @@ class LinkController extends Controller
     protected function buildFilteredQuery($user, array $filters): Builder
     {
         return Link::query()
-            ->with(['category', 'tags'])
-            ->withCount('favorites')
+            ->select([
+                'id',
+                'title',
+                'url',
+                'description',
+                'category_id',
+                'visibility',
+                'status',
+                'created_by',
+                'created_at',
+            ])
+            ->with([
+                'category:id,name',
+                'tags:id,name',
+            ])
             ->visibleTo($user)
             ->search($filters['search'] ?? null)
             ->when($filters['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
@@ -238,17 +249,69 @@ class LinkController extends Controller
             ->latest();
     }
 
-    protected function categories(): Collection
+    protected function buildDashboardQuery($user, array $filters): Builder
     {
-        return Category::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        return Link::query()
+            ->select([
+                'id',
+                'title',
+                'url',
+                'description',
+                'category_id',
+                'visibility',
+                'created_by',
+                'created_at',
+            ])
+            ->with('category:id,name')
+            ->visibleTo($user)
+            ->where('status', 'active')
+            ->when($filters['search'] ?? null, function (Builder $query, string $search): void {
+                $query->where(function (Builder $searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('url', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
+            ->when(
+                filter_var($filters['favorites'] ?? false, FILTER_VALIDATE_BOOL),
+                fn (Builder $query) => $query->whereHas('favorites', fn (Builder $favoriteQuery) => $favoriteQuery->where('user_id', $user->id))
+            )
+            ->latest();
     }
 
-    protected function favoriteIds($user): array
+    protected function categories(): Collection
     {
-        return $user->favorites()->pluck('link_id')->all();
+        return Category::activeOptions();
+    }
+
+    protected function favoriteIds($user, AbstractPaginator $links): array
+    {
+        $linkIds = $links->getCollection()->pluck('id');
+
+        if ($linkIds->isEmpty()) {
+            return [];
+        }
+
+        return $user->favorites()
+            ->whereIn('link_id', $linkIds)
+            ->pluck('link_id')
+            ->all();
+    }
+
+    protected function paginatedLinks($user, array $filters): LengthAwarePaginator
+    {
+        return $this->buildFilteredQuery($user, $filters)
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+    protected function paginatedDashboardLinks($user, array $filters): AbstractPaginator
+    {
+        return $this->buildDashboardQuery($user, $filters)
+            ->simplePaginate(12)
+            ->withQueryString();
     }
 
     protected function syncTags(Link $link, ?string $tagString): void

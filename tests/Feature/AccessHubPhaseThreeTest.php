@@ -157,6 +157,7 @@ class AccessHubPhaseThreeTest extends TestCase
             'username' => 'secret@example.test',
             'password_location' => 'Bitwarden - Secret',
             'note' => 'Sensitive operational note',
+            'status' => 'active',
         ]);
 
         $accessItem->update([

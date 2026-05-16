@@ -10,7 +10,9 @@
 
         <!-- Styles / Scripts -->
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-            @php($viteEntries = ['resources/css/app.css', 'resources/js/app.js'])
+            @php
+                $viteEntries = ['resources/css/auth.css'];
+            @endphp
             @include('layouts.partials.asset-loader')
         @else
             <style>

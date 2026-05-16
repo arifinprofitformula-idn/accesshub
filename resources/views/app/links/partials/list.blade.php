@@ -2,6 +2,7 @@
 @php
     $manageMode = $manageMode ?? false;
     $dashboardMode = $dashboardMode ?? false;
+    $showTags = $showTags ?? true;
 @endphp
 
 @forelse ($links as $link)
@@ -33,7 +34,7 @@
                 @endcan
             </div>
 
-            @if ($link->tags->isNotEmpty())
+            @if ($showTags && $link->relationLoaded('tags') && $link->tags->isNotEmpty())
                 <div class="mt-4 flex flex-wrap gap-2">
                     @foreach ($link->tags as $tag)
                         <span class="ah-badge bg-violet-400/15 text-violet-100">{{ $tag->name }}</span>
@@ -148,7 +149,9 @@
                 <tr>
                     <th class="px-6 py-4">Link</th>
                     <th class="px-6 py-4">Kategori</th>
-                    <th class="px-6 py-4">Tag</th>
+                    @if ($showTags)
+                        <th class="px-6 py-4">Tag</th>
+                    @endif
                     <th class="px-6 py-4">Visibility</th>
                     <th class="px-6 py-4">Aksi</th>
                 </tr>
@@ -182,15 +185,17 @@
                         <td class="px-6 py-5">
                             <span class="ah-badge bg-cyan-400/15 text-cyan-200">{{ $link->category?->name ?? 'Tanpa kategori' }}</span>
                         </td>
-                        <td class="px-6 py-5">
-                            <div class="flex max-w-[220px] flex-wrap gap-2">
-                                @forelse ($link->tags as $tag)
-                                    <span class="ah-badge bg-violet-400/15 text-violet-100">{{ $tag->name }}</span>
-                                @empty
-                                    <span class="text-slate-500">-</span>
-                                @endforelse
-                            </div>
-                        </td>
+                        @if ($showTags)
+                            <td class="px-6 py-5">
+                                <div class="flex max-w-[220px] flex-wrap gap-2">
+                                    @forelse ($link->tags as $tag)
+                                        <span class="ah-badge bg-violet-400/15 text-violet-100">{{ $tag->name }}</span>
+                                    @empty
+                                        <span class="text-slate-500">-</span>
+                                    @endforelse
+                                </div>
+                            </td>
+                        @endif
                         <td class="px-6 py-5">
                             <span class="ah-badge bg-white/8 text-slate-300">{{ $visibilityLabel }}</span>
                         </td>
@@ -372,7 +377,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12">
+                        <td colspan="{{ $showTags ? 5 : 4 }}" class="px-6 py-12">
                             <div class="ah-empty-state">
                                 <div class="ah-empty-state-spot">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7">

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'accesshub-pwa-v1';
+const CACHE_VERSION = 'accesshub-pwa-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = '/offline';
 
@@ -16,12 +16,13 @@ const STATIC_ASSETS = [
     '/icons/icon-512-maskable.png',
     '/icons/shortcut-add.png',
     '/icons/shortcut-star.png',
-    '/images/accesshub-auth-logo.png',
+    '/icons/icon-192.png',
 ];
 
 const AUTH_EXACT_PATHS = new Set([
     '/login',
     '/logout',
+    '/register',
     '/forgot-password',
     '/offline',
 ]);

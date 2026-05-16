@@ -154,6 +154,7 @@ class UserOwnedLinksTest extends TestCase
             ->assertRedirect(route('dashboard'));
 
         $this->actingAs($user)
+            ->from(route('dashboard'))
             ->delete(route('app.links.destroy', $link))
             ->assertRedirect(route('dashboard'))
             ->assertSessionHas('status', 'Link dipindahkan ke arsip.');
@@ -220,6 +221,51 @@ class UserOwnedLinksTest extends TestCase
             ->assertOk()
             ->assertSeeText($ownLink->title)
             ->assertDontSeeText($otherLink->title);
+    }
+
+    public function test_category_filter_only_returns_matching_owned_links(): void
+    {
+        $user = $this->makeUser('user');
+        $secondCategory = Category::factory()->create();
+
+        $matchingLink = Link::factory()->create([
+            'title' => 'Marketing Dashboard',
+            'category_id' => $this->category->id,
+            'visibility' => 'private',
+            'created_by' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $nonMatchingLink = Link::factory()->create([
+            'title' => 'Finance Sheet',
+            'category_id' => $secondCategory->id,
+            'visibility' => 'private',
+            'created_by' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard', ['category' => $this->category->id]))
+            ->assertOk()
+            ->assertSeeText($matchingLink->title)
+            ->assertDontSeeText($nonMatchingLink->title);
+    }
+
+    public function test_links_index_uses_pagination_for_large_result_sets(): void
+    {
+        $user = $this->makeUser('user');
+
+        Link::factory()->count(13)->create([
+            'category_id' => $this->category->id,
+            'visibility' => 'private',
+            'created_by' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('app.links.index'))
+            ->assertOk()
+            ->assertSeeText('Next');
     }
 
     public function test_pending_user_cannot_access_dashboard(): void

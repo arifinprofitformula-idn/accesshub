@@ -44,44 +44,39 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $email = $this->string('email')->toString();
+        $email = Str::lower($this->string('email')->trim()->toString());
         $password = $this->string('password')->toString();
 
         $user = User::query()
+            ->select(['id', 'email', 'password', 'is_active', 'approved_at'])
             ->where('email', $email)
             ->first();
 
-        if ($user && Hash::check($password, $user->password)) {
-            if (! $user->is_active) {
-                RateLimiter::hit($this->throttleKey());
-
-                throw ValidationException::withMessages([
-                    'email' => 'Akun Anda nonaktif. Hubungi Super Admin.',
-                ]);
-            }
-
-            if (! $user->isApproved()) {
-                RateLimiter::hit($this->throttleKey());
-
-                throw ValidationException::withMessages([
-                    'email' => 'Akun Anda masih menunggu approval admin dan belum bisa mengakses dashboard.',
-                ]);
-            }
-        }
-
-        $credentials = [
-            'email' => $email,
-            'password' => $password,
-            'is_active' => true,
-        ];
-
-        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
         }
+
+        if (! $user->is_active) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda nonaktif. Hubungi Super Admin.',
+            ]);
+        }
+
+        if (! $user->isApproved()) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda masih menunggu approval admin dan belum bisa mengakses dashboard.',
+            ]);
+        }
+
+        Auth::login($user, $this->boolean('remember'));
 
         RateLimiter::clear($this->throttleKey());
     }

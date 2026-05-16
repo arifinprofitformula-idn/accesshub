@@ -11,6 +11,9 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        @php
+            $viteEntries = ['resources/css/app.css', 'resources/js/app.js', 'resources/js/pwa.js'];
+        @endphp
         @include('layouts.partials.pwa-head')
         @include('layouts.partials.asset-loader')
     </head>
@@ -33,6 +36,6 @@
             </main>
         </div>
 
-        @include('layouts.partials.pwa-register')
+        @include('layouts.partials.pwa-shell')
     </body>
 </html>

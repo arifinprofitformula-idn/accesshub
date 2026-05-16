@@ -10,10 +10,14 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
+        @php
+            $viteEntries = ['resources/css/app.css', 'resources/js/app.js', 'resources/js/pwa.js'];
+        @endphp
         @include('layouts.partials.pwa-head')
         @include('layouts.partials.asset-loader')
     </head>
     @php
+        $currentUser = auth()->user();
         $icon = function (string $name, string $classes = 'h-5 w-5') {
             $paths = [
                 'dashboard' => '<path d="M4 7.25A2.25 2.25 0 0 1 6.25 5h3.5A2.25 2.25 0 0 1 12 7.25v3.5A2.25 2.25 0 0 1 9.75 13h-3.5A2.25 2.25 0 0 1 4 10.75v-3.5Zm8 0A2.25 2.25 0 0 1 14.25 5h3.5A2.25 2.25 0 0 1 20 7.25v3.5A2.25 2.25 0 0 1 17.75 13h-3.5A2.25 2.25 0 0 1 12 10.75v-3.5Zm-8 8A2.25 2.25 0 0 1 6.25 13h3.5A2.25 2.25 0 0 1 12 15.25v3.5A2.25 2.25 0 0 1 9.75 21h-3.5A2.25 2.25 0 0 1 4 18.75v-3.5Zm8 0A2.25 2.25 0 0 1 14.25 13h3.5A2.25 2.25 0 0 1 20 15.25v3.5A2.25 2.25 0 0 1 17.75 21h-3.5A2.25 2.25 0 0 1 12 18.75v-3.5Z" />',
@@ -47,7 +51,7 @@
                 'route' => route('app.links.create'),
                 'active' => request()->routeIs('app.links.create'),
                 'icon' => 'plus',
-                'visible' => auth()->user()->can('create', \App\Models\Link::class),
+                'visible' => $currentUser->can('create', \App\Models\Link::class),
             ],
             [
                 'label' => 'Favorit',
@@ -71,7 +75,7 @@
                 'route' => route('app.links.create'),
                 'active' => request()->routeIs('app.links.create'),
                 'icon' => 'plus',
-                'visible' => auth()->user()->can('create', \App\Models\Link::class),
+                'visible' => $currentUser->can('create', \App\Models\Link::class),
                 'featured' => false,
             ],
             [
@@ -109,7 +113,7 @@
                 <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-5 lg:px-6">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
                         <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-1.5 shadow-[0_18px_45px_-24px_rgba(34,211,238,0.95)]">
-                            <img src="{{ asset('images/accesshub-auth-logo.png') }}" alt="Access Hub logo" class="h-full w-full object-contain">
+                            <img src="{{ asset('icons/icon-192.png') }}" alt="Access Hub logo" class="h-full w-full object-contain">
                         </div>
                         <div>
                             <h1 class="text-lg font-semibold text-white">Access Hub</h1>
@@ -132,7 +136,7 @@
                                 Profil
                             </a>
 
-                            @if (auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                            @if ($currentUser->hasAnyRole(['super_admin', 'admin']))
                                 <a href="{{ url('/admin') }}" class="{{ $adminActive ? 'border-cyan-300/25 bg-cyan-400/12 text-white' : '' }} ah-secondary-btn gap-2">
                                     {!! $icon('admin', 'h-4 w-4') !!}
                                     Admin
@@ -240,7 +244,5 @@
                 </div>
             </nav>
         </div>
-
-        @include('layouts.partials.pwa-register')
     </body>
 </html>
