@@ -147,18 +147,41 @@
 
             @include('layouts.partials.pwa-shell')
 
-            <nav class="sticky bottom-0 border-t border-white/10 bg-slate-950/92 px-4 py-3 backdrop-blur-2xl md:hidden">
-                <div class="grid grid-cols-4 gap-2">
+            <nav class="sticky bottom-0 border-t border-white/10 bg-slate-950/92 px-2 py-2 backdrop-blur-2xl md:hidden">
+                <div class="mx-auto grid max-w-md grid-cols-5 items-center gap-1">
                     @foreach ($navItems as $item)
-                        <a href="{{ $item['route'] }}" aria-label="{{ $item['label'] }}" class="{{ $item['active'] ? 'border-cyan-300/20 bg-white/10 text-white' : 'border-transparent text-slate-400' }} flex flex-col items-center justify-center gap-1.5 rounded-[1.35rem] border px-2 py-2 transition">
-                            <span class="flex h-11 w-11 items-center justify-center rounded-[1.15rem] bg-gradient-to-br from-cyan-300 via-sky-400 to-violet-500 text-slate-950 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.95)]">
-                                {!! $icon($item['icon']) !!}
+                        <a
+                            href="{{ $item['route'] }}"
+                            aria-label="{{ $item['label'] }}"
+                            data-active="{{ $item['active'] ? 'true' : 'false' }}"
+                            data-inactive="{{ $item['active'] ? 'false' : 'true' }}"
+                            class="{{ $item['active'] ? 'border-cyan-300/20 bg-white/10 text-white' : 'border-transparent text-slate-400' }} ah-mobile-nav-item"
+                        >
+                            <span class="ah-mobile-nav-icon bg-gradient-to-br from-cyan-300 via-sky-400 to-violet-500">
+                                {!! $icon($item['icon'], 'h-4 w-4') !!}
                             </span>
-                            <span class="text-[10px] font-semibold leading-none tracking-[0.04em]">
+                            <span class="ah-mobile-nav-label">
                                 {{ $item['label'] }}
                             </span>
                         </a>
                     @endforeach
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            aria-label="Logout"
+                            data-active="false"
+                            data-inactive="true"
+                            class="ah-mobile-nav-item border-transparent text-slate-400 hover:border-rose-300/15 hover:bg-white/10 hover:text-white"
+                        >
+                            <span class="ah-mobile-nav-icon bg-gradient-to-br from-amber-200 via-rose-300 to-rose-500">
+                                {!! $icon('logout', 'h-4 w-4') !!}
+                            </span>
+                            <span class="ah-mobile-nav-label">
+                                Logout
+                            </span>
+                        </button>
+                    </form>
                 </div>
             </nav>
         </div>
