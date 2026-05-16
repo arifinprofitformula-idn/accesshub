@@ -99,6 +99,8 @@
                 'featured' => false,
             ],
         ])->filter(fn (array $item): bool => $item['visible']);
+
+        $profileActive = request()->routeIs('profile.edit');
     @endphp
     <body class="min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.12),transparent_24%),linear-gradient(180deg,#020617_0%,#081120_100%)] font-sans text-slate-100 antialiased">
         <div class="min-h-screen">
@@ -118,13 +120,13 @@
                         <a
                             href="{{ route('profile.edit') }}"
                             aria-label="Profil"
-                            class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-cyan-300/20 hover:bg-white/10 hover:text-white md:hidden"
+                            class="{{ $profileActive ? 'border-cyan-300/25 bg-cyan-400/12 text-white' : 'border-white/10 bg-white/5 text-slate-200' }} inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition hover:border-cyan-300/20 hover:bg-white/10 hover:text-white md:hidden"
                         >
                             {!! $icon('profile', 'h-5 w-5') !!}
                         </a>
 
                         <div class="hidden items-center gap-3 md:flex">
-                            <a href="{{ route('profile.edit') }}" class="ah-secondary-btn gap-2">
+                            <a href="{{ route('profile.edit') }}" class="{{ $profileActive ? 'border-cyan-300/25 bg-cyan-400/12 text-white' : '' }} ah-secondary-btn gap-2">
                                 {!! $icon('profile', 'h-4 w-4') !!}
                                 Profil
                             </a>
