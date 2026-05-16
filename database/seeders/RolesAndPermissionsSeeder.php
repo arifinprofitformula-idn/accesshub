@@ -75,6 +75,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'links.archive',
                 'links.open',
                 'favorites.manage',
+                'categories.create',
             ],
             // staff kept for backward compatibility with existing user accounts
             'staff' => [
@@ -86,6 +87,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'links.archive',
                 'links.open',
                 'favorites.manage',
+                'categories.create',
             ],
         ];
 

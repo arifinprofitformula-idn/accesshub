@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\App\AccessItemController;
+use App\Http\Controllers\App\CategoryController;
 use App\Http\Controllers\App\LinkController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             return redirect()->route('app.links.index', ['favorites' => 1]);
         })->name('favorites');
 
+        Route::post('/categories/quick', [CategoryController::class, 'quickStore'])->name('categories.quick-store');
         Route::get('/links/create', [LinkController::class, 'create'])->name('links.create');
         Route::post('/links', [LinkController::class, 'store'])->name('links.store');
         Route::get('/links', [LinkController::class, 'index'])->name('links.index');
