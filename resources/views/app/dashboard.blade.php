@@ -2,7 +2,7 @@
     title="AccessHub Dashboard"
     eyebrow="Dashboard"
     heading="AccessHub"
-    subheading="Cari dan buka link penting pekerjaan dengan cepat."
+    subheading="Akses cepat untuk menemukan, membuka, dan menyalin link kerja yang Anda butuhkan."
 >
     <div x-data="{ copied: null }" class="space-y-7 sm:space-y-8">
         <section class="ah-panel p-4 sm:p-6 lg:p-7">
@@ -46,22 +46,9 @@
             </form>
         </section>
 
-        <section class="ah-panel p-5 sm:p-6 lg:p-7">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300">Quick Access</p>
-                    <h2 class="mt-1 text-xl font-semibold text-white">Temukan link kerja Anda dalam hitungan detik</h2>
-                    <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Dashboard ini fokus pada hal yang paling penting: cari, buka, copy, edit, dan arsipkan link milik Anda atau link shared yang memang bisa Anda akses.</p>
-                </div>
-                <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                    <a href="{{ route('app.manage') }}" class="ah-secondary-btn w-full justify-center sm:w-auto">Manage Link Asset</a>
-                    @can('create', \App\Models\Link::class)
-                        <a href="{{ route('app.links.create') }}" class="ah-accent-btn w-full justify-center sm:w-auto">+ Tambah Link</a>
-                    @endcan
-                </div>
-            </div>
-        </section>
-
-        @include('app.links.partials.list', ['emptyMessage' => 'Belum ada link tersimpan. Tambahkan link pertama Anda agar lebih mudah ditemukan nanti.'])
+        @include('app.links.partials.list', [
+            'emptyMessage' => 'Belum ada link tersimpan. Tambahkan link pertama Anda dari menu yang sudah tersedia agar lebih mudah ditemukan nanti.',
+            'dashboardMode' => true,
+        ])
     </div>
 </x-internal-app-layout>

@@ -1,6 +1,7 @@
 <section class="grid gap-4 lg:hidden">
 @php
     $manageMode = $manageMode ?? false;
+    $dashboardMode = $dashboardMode ?? false;
 @endphp
 
 @forelse ($links as $link)
@@ -75,6 +76,7 @@
                         </span>
                     </button>
                     @can('update', $link)
+                        @unless ($dashboardMode)
                         <a
                             href="{{ route('app.links.edit', $link) }}"
                             title="Edit"
@@ -110,6 +112,7 @@
                                 </svg>
                             </button>
                         </form>
+                        @endunless
                     @endcan
                 </div>
             </div>
@@ -223,6 +226,7 @@
                                         </span>
                                     </button>
                                     @can('update', $link)
+                                        @unless ($dashboardMode)
                                         <a
                                             href="{{ route('app.links.edit', $link) }}"
                                             title="Edit"
@@ -315,6 +319,7 @@
                                                 </svg>
                                             </button>
                                         </form>
+                                        @endunless
                                     @endcan
                                 </div>
                             @endif

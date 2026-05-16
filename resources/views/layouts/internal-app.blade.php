@@ -105,12 +105,12 @@
             <header class="border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
                 <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-5 lg:px-6">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-cyan-300 via-sky-400 to-blue-600 text-lg font-semibold text-slate-950 shadow-[0_18px_45px_-24px_rgba(34,211,238,0.95)]">
-                            AH
+                        <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-1.5 shadow-[0_18px_45px_-24px_rgba(34,211,238,0.95)]">
+                            <img src="{{ asset('images/accesshub-auth-logo.png') }}" alt="Access Hub logo" class="h-full w-full object-contain">
                         </div>
                         <div>
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">Personal And Team Link Manager</p>
-                            <h1 class="text-lg font-semibold text-white">AccessHub</h1>
+                            <h1 class="text-lg font-semibold text-white">Access Hub</h1>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">Find. Access. Work.</p>
                         </div>
                     </a>
 
