@@ -40,28 +40,79 @@
                 </div>
             @endif
 
-            <div class="mt-6 grid grid-cols-2 gap-3">
-                <a href="{{ route('app.links.open', $link) }}" target="_blank" rel="noopener noreferrer" class="ah-primary-btn justify-center">
-                    Buka
-                </a>
-                <button type="button" x-on:click="navigator.clipboard.writeText(@js($link->url)); copied = {{ $link->id }}" class="ah-secondary-btn justify-center">
-                    <span x-show="copied !== {{ $link->id }}">Copy</span>
-                    <span x-show="copied === {{ $link->id }}">Copied</span>
-                </button>
-            </div>
-
-            @can('update', $link)
-                <div class="mt-3 grid grid-cols-2 gap-3">
-                    <a href="{{ route('app.links.edit', $link) }}" class="ah-secondary-btn w-full justify-center">Edit</a>
-                    <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('{{ $manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?' }}')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="ah-secondary-btn w-full justify-center text-rose-100">
-                            {{ $manageMode ? 'Hapus' : 'Arsip' }}
-                        </button>
-                    </form>
+            <div class="mt-6 flex items-center justify-between gap-3">
+                <div class="flex flex-wrap gap-2">
+                    <a
+                        href="{{ route('app.links.open', $link) }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Buka"
+                        aria-label="Buka"
+                        class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/12 text-cyan-100 transition hover:border-cyan-300/35 hover:bg-cyan-400/18"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                            <path d="M7 17 17 7" />
+                            <path d="M8.5 7H17v8.5" />
+                        </svg>
+                    </a>
+                    <button
+                        type="button"
+                        title="Copy Link"
+                        aria-label="Copy Link"
+                        x-on:click="navigator.clipboard.writeText(@js($link->url)); copied = {{ $link->id }}"
+                        class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+                    >
+                        <span x-show="copied !== {{ $link->id }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                <rect x="9" y="9" width="10" height="10" rx="2" />
+                                <path d="M6 15V7a2 2 0 0 1 2-2h8" />
+                            </svg>
+                        </span>
+                        <span x-show="copied === {{ $link->id }}" class="text-cyan-200">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                <path d="m5 13 4 4L19 7" />
+                            </svg>
+                        </span>
+                    </button>
+                    @can('update', $link)
+                        <a
+                            href="{{ route('app.links.edit', $link) }}"
+                            title="Edit"
+                            aria-label="Edit"
+                            class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                <path d="m16.862 5.487 1.65 1.65a1.75 1.75 0 0 1 0 2.475L10 18.125 6 19l.875-4 8.512-8.513a1.75 1.75 0 0 1 2.475 0Z" />
+                            </svg>
+                        </a>
+                        <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('{{ $manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?' }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                type="submit"
+                                title="{{ $manageMode ? 'Hapus' : 'Arsipkan' }}"
+                                aria-label="{{ $manageMode ? 'Hapus' : 'Arsipkan' }}"
+                                class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                    @if ($manageMode)
+                                        <path d="M4 7h16" />
+                                        <path d="m9 7 .75-2h4.5L15 7" />
+                                        <path d="M7.75 7 8.5 18.25A1.75 1.75 0 0 0 10.246 20h3.508A1.75 1.75 0 0 0 15.5 18.25L16.25 7" />
+                                        <path d="M10 11v5" />
+                                        <path d="M14 11v5" />
+                                    @else
+                                        <path d="M4.75 7.75h14.5" />
+                                        <path d="M6.75 7.75v9.5A1.75 1.75 0 0 0 8.5 19h7a1.75 1.75 0 0 0 1.75-1.75v-9.5" />
+                                        <path d="M9 7.75V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2.25" />
+                                        <path d="M10 11.25h4" />
+                                    @endif
+                                </svg>
+                            </button>
+                        </form>
+                    @endcan
                 </div>
-            @endcan
+            </div>
         </article>
     @empty
         <div class="ah-empty-state">
@@ -204,19 +255,65 @@
                                 </div>
                             @else
                                 <div class="flex flex-wrap gap-2">
-                                    <a href="{{ route('app.links.open', $link) }}" target="_blank" rel="noopener noreferrer" class="ah-primary-btn px-4 py-2 text-xs">
-                                        Buka
+                                    <a
+                                        href="{{ route('app.links.open', $link) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="Buka"
+                                        aria-label="Buka"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/12 text-cyan-100 transition hover:border-cyan-300/35 hover:bg-cyan-400/18"
+                                    >
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                            <path d="M7 17 17 7" />
+                                            <path d="M8.5 7H17v8.5" />
+                                        </svg>
                                     </a>
-                                    <button type="button" x-on:click="navigator.clipboard.writeText(@js($link->url)); copied = {{ $link->id }}" class="ah-secondary-btn px-4 py-2 text-xs">
-                                        <span x-show="copied !== {{ $link->id }}">Copy</span>
-                                        <span x-show="copied === {{ $link->id }}">Copied</span>
+                                    <button
+                                        type="button"
+                                        title="Copy Link"
+                                        aria-label="Copy Link"
+                                        x-on:click="navigator.clipboard.writeText(@js($link->url)); copied = {{ $link->id }}"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+                                    >
+                                        <span x-show="copied !== {{ $link->id }}">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                                <rect x="9" y="9" width="10" height="10" rx="2" />
+                                                <path d="M6 15V7a2 2 0 0 1 2-2h8" />
+                                            </svg>
+                                        </span>
+                                        <span x-show="copied === {{ $link->id }}" class="text-cyan-200">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                                <path d="m5 13 4 4L19 7" />
+                                            </svg>
+                                        </span>
                                     </button>
                                     @can('update', $link)
-                                        <a href="{{ route('app.links.edit', $link) }}" class="ah-secondary-btn px-4 py-2 text-xs">Edit</a>
+                                        <a
+                                            href="{{ route('app.links.edit', $link) }}"
+                                            title="Edit"
+                                            aria-label="Edit"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                                <path d="m16.862 5.487 1.65 1.65a1.75 1.75 0 0 1 0 2.475L10 18.125 6 19l.875-4 8.512-8.513a1.75 1.75 0 0 1 2.475 0Z" />
+                                            </svg>
+                                        </a>
                                         <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('Arsipkan link ini?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="ah-secondary-btn px-4 py-2 text-xs text-rose-100">Arsip</button>
+                                            <button
+                                                type="submit"
+                                                title="Arsipkan"
+                                                aria-label="Arsipkan"
+                                                class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18"
+                                            >
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                                    <path d="M4.75 7.75h14.5" />
+                                                    <path d="M6.75 7.75v9.5A1.75 1.75 0 0 0 8.5 19h7a1.75 1.75 0 0 0 1.75-1.75v-9.5" />
+                                                    <path d="M9 7.75V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2.25" />
+                                                    <path d="M10 11.25h4" />
+                                                </svg>
+                                            </button>
                                         </form>
                                     @endcan
                                 </div>
