@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'accesshub-pwa-v2';
+const CACHE_VERSION = 'accesshub-pwa-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = '/offline';
 
@@ -16,7 +16,6 @@ const STATIC_ASSETS = [
     '/icons/icon-512-maskable.png',
     '/icons/shortcut-add.png',
     '/icons/shortcut-star.png',
-    '/icons/icon-192.png',
 ];
 
 const AUTH_EXACT_PATHS = new Set([
@@ -96,6 +95,14 @@ function shouldBypassCaching(url) {
     }
 
     if (url.pathname.startsWith('/livewire') || url.pathname.startsWith('/broadcasting')) {
+        return true;
+    }
+
+    if (url.pathname.startsWith('/js/filament/') || url.pathname.startsWith('/css/filament/')) {
+        return true;
+    }
+
+    if (url.pathname.startsWith('/vendor/livewire/')) {
         return true;
     }
 

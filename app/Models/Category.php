@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Database\Factories\CategoryFactory;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Throwable;
 
 class Category extends Model
 {
@@ -57,9 +58,49 @@ class Category extends Model
 
     public static function activeOptions(): Collection
     {
-        return Cache::rememberForever(self::ACTIVE_OPTIONS_CACHE_KEY, static fn (): Collection => self::query()
+        $cached = Cache::get(self::ACTIVE_OPTIONS_CACHE_KEY);
+
+        if ($cached instanceof Collection) {
+            return $cached;
+        }
+
+        if (is_array($cached)) {
+            return collect($cached)
+                ->map(static fn (array|object $category): object => (object) [
+                    'id' => data_get($category, 'id'),
+                    'name' => data_get($category, 'name'),
+                ]);
+        }
+
+        if ($cached !== null) {
+            Cache::forget(self::ACTIVE_OPTIONS_CACHE_KEY);
+        }
+
+        return self::refreshActiveOptionsCache();
+    }
+
+    protected static function refreshActiveOptionsCache(): Collection
+    {
+        $options = self::query()
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name']));
+            ->get(['id', 'name']);
+
+        try {
+            Cache::forever(
+                self::ACTIVE_OPTIONS_CACHE_KEY,
+                $options
+                    ->map(static fn (Category $category): array => [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                    ])
+                    ->values()
+                    ->all()
+            );
+        } catch (Throwable) {
+            // If the cache store is unavailable, continue serving fresh data.
+        }
+
+        return $options;
     }
 }
