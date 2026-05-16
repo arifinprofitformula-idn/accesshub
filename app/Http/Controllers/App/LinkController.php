@@ -151,9 +151,11 @@ class LinkController extends Controller
             'status' => 'archived',
         ]);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('status', 'Link dipindahkan ke arsip.');
+        $message = str_contains((string) url()->previous(), '/app/manage')
+            ? 'Asset link berhasil dihapus dari daftar kelola.'
+            : 'Link dipindahkan ke arsip.';
+
+        return back()->with('status', $message);
     }
 
     public function open(Request $request, Link $link): RedirectResponse
