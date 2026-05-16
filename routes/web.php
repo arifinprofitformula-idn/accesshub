@@ -32,6 +32,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::get('/links/create', [LinkController::class, 'create'])->name('links.create');
         Route::post('/links', [LinkController::class, 'store'])->name('links.store');
         Route::get('/links', [LinkController::class, 'index'])->name('links.index');
+        Route::get('/manage', [LinkController::class, 'manage'])->name('manage');
         Route::get('/links/{link}/edit', [LinkController::class, 'edit'])->name('links.edit');
         Route::match(['put', 'patch'], '/links/{link}', [LinkController::class, 'update'])->name('links.update');
         Route::delete('/links/{link}', [LinkController::class, 'destroy'])->name('links.destroy');

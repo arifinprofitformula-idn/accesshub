@@ -52,6 +52,23 @@ class LinkController extends Controller
         ]);
     }
 
+    public function manage(Request $request): View
+    {
+        $this->authorize('viewAny', Link::class);
+
+        $user = $request->user();
+        $filters = $this->validateFilters($request);
+
+        return view('app.links.manage', [
+            'links' => $this->buildFilteredQuery($user, $filters)
+                ->paginate(12)
+                ->withQueryString(),
+            'categories' => $this->categories(),
+            'favoriteIds' => $this->favoriteIds($user),
+            'filters' => $filters,
+        ]);
+    }
+
     public function create(): View
     {
         $this->authorize('create', Link::class);
