@@ -114,20 +114,35 @@
                         </div>
                     </a>
 
-                    <div class="hidden items-center gap-3 md:flex">
-                        @if (auth()->user()->hasAnyRole(['super_admin', 'admin']))
-                            <a href="{{ url('/admin') }}" class="ah-secondary-btn gap-2">
-                                {!! $icon('admin', 'h-4 w-4') !!}
-                                Admin
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <a
+                            href="{{ route('profile.edit') }}"
+                            aria-label="Profil"
+                            class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-cyan-300/20 hover:bg-white/10 hover:text-white md:hidden"
+                        >
+                            {!! $icon('profile', 'h-5 w-5') !!}
+                        </a>
+
+                        <div class="hidden items-center gap-3 md:flex">
+                            <a href="{{ route('profile.edit') }}" class="ah-secondary-btn gap-2">
+                                {!! $icon('profile', 'h-4 w-4') !!}
+                                Profil
                             </a>
-                        @endif
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="ah-secondary-btn gap-2">
-                                {!! $icon('logout', 'h-4 w-4') !!}
-                                Logout
-                            </button>
-                        </form>
+
+                            @if (auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                                <a href="{{ url('/admin') }}" class="ah-secondary-btn gap-2">
+                                    {!! $icon('admin', 'h-4 w-4') !!}
+                                    Admin
+                                </a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="ah-secondary-btn gap-2">
+                                    {!! $icon('logout', 'h-4 w-4') !!}
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
