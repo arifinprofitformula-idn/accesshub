@@ -62,6 +62,10 @@
             </form>
         </section>
 
-        @include('app.links.partials.list', ['emptyMessage' => 'Tidak ada link yang cocok dengan pencarian atau filter saat ini.'])
+        @include('app.links.partials.list', [
+            'emptyMessage' => 'Tidak ada link yang cocok dengan pencarian atau filter saat ini.',
+            'dashboardMode' => true,
+            'showTags' => false,
+        ])
     </div>
 </x-internal-app-layout>
