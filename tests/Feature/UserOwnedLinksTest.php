@@ -26,7 +26,7 @@ class UserOwnedLinksTest extends TestCase
     /** Helper — create an approved, active user with the given role. */
     private function makeUser(string $role = 'user'): User
     {
-        $user = User::factory()->create(['approved_at' => now()]);
+        $user = User::factory()->create(); // approved_at = now() by default
         $user->assignRole($role);
 
         return $user;
@@ -224,7 +224,7 @@ class UserOwnedLinksTest extends TestCase
 
     public function test_pending_user_cannot_access_dashboard(): void
     {
-        $user = User::factory()->create(['approved_at' => null, 'is_active' => true]);
+        $user = User::factory()->pending()->create();
         $user->assignRole('user');
 
         $this->actingAs($user)
@@ -234,7 +234,7 @@ class UserOwnedLinksTest extends TestCase
 
     public function test_inactive_user_cannot_access_dashboard(): void
     {
-        $user = User::factory()->create(['approved_at' => now(), 'is_active' => false]);
+        $user = User::factory()->inactive()->create();
         $user->assignRole('user');
 
         $this->actingAs($user)

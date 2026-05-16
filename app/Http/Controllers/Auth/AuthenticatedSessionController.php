@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Filament\Resources\Users\UserResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -22,13 +23,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
-
-        if ($user->hasAnyRole(['super_admin', 'admin'])) {
-            return redirect()->intended('/admin');
-        }
-
-        return redirect()->intended(route('app.dashboard', absolute: false));
+        return redirect()->to($this->redirectPathFor($request));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -40,5 +35,16 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    private function redirectPathFor(Request $request): string
+    {
+        $user = $request->user();
+
+        if ($user?->hasAnyRole(['super_admin', 'admin'])) {
+            return UserResource::getUrl('index');
+        }
+
+        return route('app.dashboard', absolute: false);
     }
 }

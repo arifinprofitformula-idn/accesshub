@@ -59,7 +59,7 @@ class AccessHubPhaseThreeTest extends TestCase
     public function test_access_item_open_route_logs_activity(): void
     {
         $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin->assignRole('super_admin');
 
         $accessItem = AccessItem::factory()->create([
             'platform_name' => 'Staff Open Item',
@@ -67,7 +67,7 @@ class AccessHubPhaseThreeTest extends TestCase
             'category_id' => $this->category->id,
             'created_by' => $admin->id,
         ]);
-        $accessItem->visibleToRoles()->sync([Role::where('name', 'admin')->value('id')]);
+        $accessItem->visibleToRoles()->sync([Role::where('name', 'super_admin')->value('id')]);
 
         $response = $this->actingAs($admin)->get(route('app.access-items.open', $accessItem));
 

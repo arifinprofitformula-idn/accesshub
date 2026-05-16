@@ -25,50 +25,41 @@ class AccessHubPhaseTwoTest extends TestCase
         $this->category = Category::factory()->create();
     }
 
-    public function test_staff_only_sees_links_allowed_by_visibility_rules(): void
+    public function test_staff_only_sees_own_links(): void
     {
         $staff = User::factory()->create();
         $staff->assignRole('staff');
 
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $other = User::factory()->create();
+        $other->assignRole('staff');
 
-        $internal = Link::factory()->create([
-            'title' => 'Internal Link',
-            'category_id' => $this->category->id,
-            'visibility' => 'internal',
-            'created_by' => $admin->id,
-        ]);
-
-        $roleOnly = Link::factory()->create([
-            'title' => 'Admin Only Link',
-            'category_id' => $this->category->id,
-            'visibility' => 'role',
-            'created_by' => $admin->id,
-        ]);
-        $roleOnly->visibleToRoles()->sync([Role::where('name', 'admin')->value('id')]);
-
-        $privateOwn = Link::factory()->create([
-            'title' => 'Private Own Link',
+        $ownLink = Link::factory()->create([
+            'title' => 'Own Private Link',
             'category_id' => $this->category->id,
             'visibility' => 'private',
             'created_by' => $staff->id,
         ]);
 
-        $privateOther = Link::factory()->create([
-            'title' => 'Private Other Link',
+        $otherInternal = Link::factory()->create([
+            'title' => 'Other Internal Link',
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $other->id,
+        ]);
+
+        $otherPrivate = Link::factory()->create([
+            'title' => 'Other Private Link',
             'category_id' => $this->category->id,
             'visibility' => 'private',
-            'created_by' => $admin->id,
+            'created_by' => $other->id,
         ]);
 
         $response = $this->actingAs($staff)->get(route('app.links.index'));
 
         $response->assertOk();
-        $response->assertSeeText($internal->title);
-        $response->assertSeeText($privateOwn->title);
-        $response->assertDontSeeText($roleOnly->title);
-        $response->assertDontSeeText($privateOther->title);
+        $response->assertSeeText($ownLink->title);
+        $response->assertDontSeeText($otherInternal->title);
+        $response->assertDontSeeText($otherPrivate->title);
     }
 
     public function test_user_can_create_link_from_simplified_app_form(): void
@@ -96,32 +87,32 @@ class AccessHubPhaseTwoTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_access_filament_link_manager(): void
+    public function test_admin_cannot_access_filament_link_manager(): void
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
         $this->actingAs($admin)
             ->get('/admin/links')
-            ->assertOk();
+            ->assertForbidden();
     }
 
-    public function test_staff_can_view_role_scoped_link_when_role_matches(): void
+    public function test_staff_can_view_own_links_regardless_of_visibility_setting(): void
     {
         $staff = User::factory()->create();
         $staff->assignRole('staff');
 
-        $roleLink = Link::factory()->create([
-            'title' => 'Staff Role Link',
+        $ownLink = Link::factory()->create([
+            'title' => 'Staff Own Link',
             'category_id' => $this->category->id,
-            'visibility' => 'role',
+            'visibility' => 'private',
+            'status' => 'active',
             'created_by' => $staff->id,
         ]);
-        $roleLink->visibleToRoles()->sync([Role::where('name', 'staff')->value('id')]);
 
         $this->actingAs($staff)
             ->get(route('app.links.index'))
-            ->assertSeeText($roleLink->title);
+            ->assertSeeText($ownLink->title);
     }
 
     public function test_user_can_toggle_favorite_from_internal_links_page(): void
@@ -157,6 +148,7 @@ class AccessHubPhaseTwoTest extends TestCase
             'title' => 'Pinned By A',
             'category_id' => $this->category->id,
             'visibility' => 'internal',
+            'status' => 'active',
             'created_by' => $staffA->id,
         ]);
 
@@ -173,7 +165,7 @@ class AccessHubPhaseTwoTest extends TestCase
             ->assertDontSeeText($link->title);
     }
 
-    public function test_dashboard_shows_shared_links_from_other_users(): void
+    public function test_dashboard_only_shows_users_own_links_not_others_shared_links(): void
     {
         $staff = User::factory()->create();
         $staff->assignRole('staff');
@@ -181,8 +173,16 @@ class AccessHubPhaseTwoTest extends TestCase
         $owner = User::factory()->create();
         $owner->assignRole('staff');
 
-        $sharedLink = Link::factory()->create([
-            'title' => 'Shared Workspace Link',
+        $ownLink = Link::factory()->create([
+            'title' => 'Own Dashboard Link',
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $staff->id,
+            'status' => 'active',
+        ]);
+
+        $othersSharedLink = Link::factory()->create([
+            'title' => 'Others Shared Workspace Link',
             'category_id' => $this->category->id,
             'visibility' => 'internal',
             'created_by' => $owner->id,
@@ -192,7 +192,8 @@ class AccessHubPhaseTwoTest extends TestCase
         $this->actingAs($staff)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSeeText($sharedLink->title);
+            ->assertSeeText($ownLink->title)
+            ->assertDontSeeText($othersSharedLink->title);
     }
 
     public function test_search_by_title_works_on_dashboard(): void

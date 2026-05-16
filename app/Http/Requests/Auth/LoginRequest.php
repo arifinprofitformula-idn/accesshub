@@ -44,23 +44,38 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $email = $this->string('email')->toString();
+        $password = $this->string('password')->toString();
+
+        $user = User::query()
+            ->where('email', $email)
+            ->first();
+
+        if ($user && Hash::check($password, $user->password)) {
+            if (! $user->is_active) {
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => 'Akun Anda nonaktif. Hubungi Super Admin.',
+                ]);
+            }
+
+            if (! $user->isApproved()) {
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => 'Akun Anda masih menunggu approval admin dan belum bisa mengakses dashboard.',
+                ]);
+            }
+        }
+
         $credentials = [
-            'email' => $this->string('email')->toString(),
-            'password' => $this->string('password')->toString(),
+            'email' => $email,
+            'password' => $password,
             'is_active' => true,
         ];
 
         if (! Auth::attempt($credentials, $this->boolean('remember'))) {
-            $user = User::query()
-                ->where('email', $this->string('email')->toString())
-                ->first();
-
-            if ($user && ! $user->is_active && Hash::check($this->string('password')->toString(), $user->password)) {
-                throw ValidationException::withMessages([
-                    'email' => 'Akun Anda sedang nonaktif. Hubungi Super Admin.',
-                ]);
-            }
-
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

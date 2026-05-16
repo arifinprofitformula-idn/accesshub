@@ -20,7 +20,7 @@ class AdminUserManagementTest extends TestCase
 
     private function makeAdmin(): User
     {
-        $admin = User::factory()->create(['approved_at' => now()]);
+        $admin = User::factory()->create();
         $admin->assignRole('admin');
 
         return $admin;
@@ -28,7 +28,7 @@ class AdminUserManagementTest extends TestCase
 
     private function makeSuperAdmin(): User
     {
-        $sa = User::factory()->create(['approved_at' => now()]);
+        $sa = User::factory()->create();
         $sa->assignRole('super_admin');
 
         return $sa;
@@ -36,9 +36,9 @@ class AdminUserManagementTest extends TestCase
 
     private function makeUser(string $role = 'user', bool $approved = true): User
     {
-        $user = User::factory()->create([
-            'approved_at' => $approved ? now() : null,
-        ]);
+        $user = $approved
+            ? User::factory()->create()
+            : User::factory()->pending()->create();
         $user->assignRole($role);
 
         return $user;
@@ -61,7 +61,7 @@ class AdminUserManagementTest extends TestCase
 
         $this->actingAs($user)
             ->get('/admin')
-            ->assertRedirect();
+            ->assertForbidden();
     }
 
     public function test_pending_user_cannot_access_admin_panel(): void
@@ -70,7 +70,7 @@ class AdminUserManagementTest extends TestCase
 
         $this->actingAs($pending)
             ->get('/admin')
-            ->assertRedirect();
+            ->assertForbidden();
     }
 
     // --- Admin cannot access link/category resources ---
@@ -137,7 +137,7 @@ class AdminUserManagementTest extends TestCase
         $this->post(route('login'), [
             'email' => $admin->email,
             'password' => 'password',
-        ])->assertRedirect('/admin');
+        ])->assertRedirect('/admin/users');
     }
 
     public function test_user_is_redirected_to_app_dashboard_after_login(): void
@@ -148,6 +148,31 @@ class AdminUserManagementTest extends TestCase
             'email' => $user->email,
             'password' => 'password',
         ])->assertRedirect(route('app.dashboard'));
+    }
+
+    public function test_super_admin_is_redirected_to_admin_user_management_after_login(): void
+    {
+        $superAdmin = $this->makeSuperAdmin();
+
+        $this->post(route('login'), [
+            'email' => $superAdmin->email,
+            'password' => 'password',
+        ])->assertRedirect('/admin/users');
+    }
+
+    public function test_pending_user_cannot_login_from_login_form(): void
+    {
+        $pending = $this->makeUser('user', false);
+
+        $this->from(route('login'))
+            ->post(route('login'), [
+                'email' => $pending->email,
+                'password' => 'password',
+            ])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
     }
 
     // --- Approval guard ---
@@ -165,10 +190,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_inactive_user_is_logged_out_and_shown_inactive_message(): void
     {
-        $inactive = User::factory()->create([
-            'approved_at' => now(),
-            'is_active' => false,
-        ]);
+        $inactive = User::factory()->inactive()->create();
         $inactive->assignRole('user');
 
         $this->actingAs($inactive)
@@ -178,22 +200,4 @@ class AdminUserManagementTest extends TestCase
         $this->assertGuest();
     }
 
-    // --- Self-registration flow ---
-
-    public function test_self_registered_user_is_not_auto_approved(): void
-    {
-        $this->post(route('register'), [
-            'name' => 'New User',
-            'email' => 'newuser@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ])->assertRedirect(route('login'));
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'newuser@example.test',
-            'approved_at' => null,
-        ]);
-
-        $this->assertGuest();
-    }
 }

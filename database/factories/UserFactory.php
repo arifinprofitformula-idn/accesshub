@@ -53,4 +53,11 @@ class UserFactory extends Factory
             'is_active' => false,
         ]);
     }
+
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'approved_at' => null,
+        ]);
+    }
 }

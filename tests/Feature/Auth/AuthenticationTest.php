@@ -27,7 +27,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('app.dashboard', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -45,6 +45,20 @@ class AuthenticationTest extends TestCase
     public function test_inactive_users_can_not_authenticate(): void
     {
         $user = User::factory()->inactive()->create();
+
+        $response = $this->from('/login')->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_pending_users_can_not_authenticate(): void
+    {
+        $user = User::factory()->pending()->create();
 
         $response = $this->from('/login')->post('/login', [
             'email' => $user->email,

@@ -22,6 +22,7 @@ class DemoDataSeeder extends Seeder
                 'name' => 'Super Admin',
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'approved_at' => now(),
             ],
         );
         $superAdmin->syncRoles(['super_admin']);
@@ -32,6 +33,7 @@ class DemoDataSeeder extends Seeder
                 'name' => 'Admin AccessHub',
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'approved_at' => now(),
             ],
         );
         $admin->syncRoles(['admin']);
@@ -42,6 +44,7 @@ class DemoDataSeeder extends Seeder
                 'name' => 'Staff AccessHub',
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'approved_at' => now(),
             ],
         );
         $staff->syncRoles(['staff']);

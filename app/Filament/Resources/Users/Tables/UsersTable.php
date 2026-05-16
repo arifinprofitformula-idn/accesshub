@@ -3,9 +3,8 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -19,21 +18,18 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Nama')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('email')
-                    ->searchable()
+                    ->label('Nama / Email')
+                    ->description(fn (User $record): string => $record->email)
+                    ->searchable(['name', 'email'])
                     ->sortable(),
                 TextColumn::make('roles_label')
                     ->label('Role')
                     ->state(fn (User $record): string => $record->getRoleNames()->implode(', '))
                     ->badge(),
-                TextColumn::make('approved_at')
-                    ->label('Approved')
-                    ->dateTime('d M Y')
-                    ->placeholder('Pending')
-                    ->sortable()
+                TextColumn::make('approval_status')
+                    ->label('Approval')
+                    ->state(fn (User $record): string => $record->approved_at ? 'Approved' : 'Pending')
+                    ->badge()
                     ->color(fn (User $record): string => $record->approved_at ? 'success' : 'warning'),
                 IconColumn::make('is_active')
                     ->label('Aktif')
@@ -62,11 +58,11 @@ class UsersTable
                         'pending' => 'Menunggu Approval',
                     ])
                     ->query(function ($query, array $data) {
-                        if ($data['value'] === 'approved') {
-                            $query->whereNotNull('approved_at');
-                        } elseif ($data['value'] === 'pending') {
-                            $query->whereNull('approved_at');
-                        }
+                        match ($data['value'] ?? null) {
+                            'approved' => $query->whereNotNull('approved_at'),
+                            'pending' => $query->whereNull('approved_at'),
+                            default => null,
+                        };
                     }),
                 SelectFilter::make('is_active')
                     ->label('Status Aktif')
@@ -76,40 +72,56 @@ class UsersTable
                     ]),
             ])
             ->recordActions([
-                ActionGroup::make([
-                    EditAction::make()
-                        ->label('Edit'),
+                EditAction::make()
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil-square')
+                    ->iconButton()
+                    ->hiddenLabel()
+                    ->size('sm')
+                    ->tooltip('Edit'),
 
-                    Action::make('approve')
-                        ->label('Approve')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->modalHeading('Approve pengguna ini?')
-                        ->modalDescription('Pengguna akan dapat login dan menggunakan aplikasi.')
-                        ->visible(fn (User $record): bool => blank($record->approved_at))
-                        ->action(fn (User $record) => $record->update(['approved_at' => now()])),
+                Action::make('approve')
+                    ->label('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->iconButton()
+                    ->hiddenLabel()
+                    ->size('sm')
+                    ->tooltip('Approve')
+                    ->requiresConfirmation()
+                    ->modalHeading('Approve pengguna ini?')
+                    ->modalDescription('Pengguna akan dapat login dan menggunakan aplikasi.')
+                    ->visible(fn (User $record): bool => blank($record->approved_at))
+                    ->action(fn (User $record) => $record->update(['approved_at' => now()])),
 
-                    Action::make('activate')
-                        ->label('Aktifkan')
-                        ->icon('heroicon-o-play')
-                        ->color('info')
-                        ->requiresConfirmation()
-                        ->modalHeading('Aktifkan akun ini?')
-                        ->visible(fn (User $record): bool => ! $record->is_active)
-                        ->action(fn (User $record) => $record->update(['is_active' => true])),
+                Action::make('activate')
+                    ->label('Aktifkan')
+                    ->icon('heroicon-o-play')
+                    ->color('info')
+                    ->iconButton()
+                    ->hiddenLabel()
+                    ->size('sm')
+                    ->tooltip('Aktifkan')
+                    ->requiresConfirmation()
+                    ->modalHeading('Aktifkan akun ini?')
+                    ->visible(fn (User $record): bool => ! $record->is_active)
+                    ->action(fn (User $record) => $record->update(['is_active' => true])),
 
-                    Action::make('deactivate')
-                        ->label('Nonaktifkan')
-                        ->icon('heroicon-o-pause')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->modalHeading('Nonaktifkan akun ini?')
-                        ->modalDescription('Pengguna tidak akan bisa login.')
-                        ->visible(fn (User $record): bool => $record->is_active && $record->id !== Auth::id())
-                        ->action(fn (User $record) => $record->update(['is_active' => false])),
-                ]),
+                Action::make('deactivate')
+                    ->label('Nonaktifkan')
+                    ->icon('heroicon-o-pause')
+                    ->color('danger')
+                    ->iconButton()
+                    ->hiddenLabel()
+                    ->size('sm')
+                    ->tooltip('Nonaktifkan')
+                    ->requiresConfirmation()
+                    ->modalHeading('Nonaktifkan akun ini?')
+                    ->modalDescription('Pengguna tidak akan bisa login.')
+                    ->visible(fn (User $record): bool => $record->is_active && $record->id !== Auth::id())
+                    ->action(fn (User $record) => $record->update(['is_active' => false])),
             ])
+            ->recordActionsColumnLabel('Action')
             ->toolbarActions([]);
     }
 }
