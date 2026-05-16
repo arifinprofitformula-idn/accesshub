@@ -87,6 +87,10 @@
                                 <path d="m16.862 5.487 1.65 1.65a1.75 1.75 0 0 1 0 2.475L10 18.125 6 19l.875-4 8.512-8.513a1.75 1.75 0 0 1 2.475 0Z" />
                             </svg>
                         </a>
+                        @endunless
+                    @endcan
+                    @can('delete', $link)
+                        @unless ($dashboardMode)
                         <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('{{ $manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?' }}')">
                             @csrf
                             @method('DELETE')
@@ -237,6 +241,10 @@
                                                 <path d="m16.862 5.487 1.65 1.65a1.75 1.75 0 0 1 0 2.475L10 18.125 6 19l.875-4 8.512-8.513a1.75 1.75 0 0 1 2.475 0Z" />
                                             </svg>
                                         </a>
+                                        @endunless
+                                    @endcan
+                                    @can('delete', $link)
+                                        @unless ($dashboardMode)
                                         <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('Hapus asset link ini dari daftar kelola? Link akan diarsipkan.')">
                                             @csrf
                                             @method('DELETE')
@@ -338,6 +346,8 @@
                                                 <path d="m16.862 5.487 1.65 1.65a1.75 1.75 0 0 1 0 2.475L10 18.125 6 19l.875-4 8.512-8.513a1.75 1.75 0 0 1 2.475 0Z" />
                                             </svg>
                                         </a>
+                                    @endcan
+                                    @can('delete', $link)
                                         <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('Arsipkan link ini?')">
                                             @csrf
                                             @method('DELETE')
