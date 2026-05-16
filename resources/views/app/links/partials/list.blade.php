@@ -5,7 +5,7 @@
 @endphp
 
 {{-- Mobile / small screen cards --}}
-<section class="{{ $dashboardMode ? 'grid gap-2.5 grid-cols-1 sm:grid-cols-2' : 'grid gap-4' }} lg:hidden">
+<section class="{{ ($dashboardMode || $manageMode) ? 'grid gap-2.5 grid-cols-1 sm:grid-cols-2' : 'grid gap-4' }} lg:hidden">
 @forelse ($links as $link)
     @php
         $host = parse_url($link->url, PHP_URL_HOST) ?: $link->url;
@@ -14,8 +14,8 @@
         $visibilityLabel = $link->visibility === 'private' ? 'Private' : 'Shared';
     @endphp
 
-    @if ($dashboardMode)
-    {{-- Compact dashboard card --}}
+    @if ($dashboardMode || $manageMode)
+    {{-- Compact card (dashboard & manage) --}}
     <article class="ah-panel rounded-xl p-3">
         <div class="flex items-start gap-2">
             <div class="min-w-0 flex-1">
@@ -27,7 +27,7 @@
                 @can('favorite', $link)
                     <form method="POST" action="{{ route('app.links.favorite.toggle', $link) }}">
                         @csrf
-                        <button type="submit" class="{{ $isFavorite ? 'border-amber-300/25 bg-amber-300/15 text-amber-200' : 'border-white/10 bg-white/5 text-slate-400' }} inline-flex h-7 w-7 items-center justify-center rounded-lg border transition hover:bg-white/10">
+                        <button type="submit" title="{{ $isFavorite ? 'Unpin' : 'Pin' }}" class="{{ $isFavorite ? 'border-amber-300/25 bg-amber-300/15 text-amber-200' : 'border-white/10 bg-white/5 text-slate-400' }} inline-flex h-7 w-7 items-center justify-center rounded-lg border transition hover:bg-white/10">
                             <svg viewBox="0 0 24 24" fill="{{ $isFavorite ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                             </svg>
@@ -62,6 +62,34 @@
                         </svg>
                     </span>
                 </button>
+                @if ($manageMode)
+                    @can('update', $link)
+                        <a
+                            href="{{ route('app.links.edit', $link) }}"
+                            title="Edit"
+                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/12"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+                                <path d="m16.862 5.487 1.65 1.65a1.75 1.75 0 0 1 0 2.475L10 18.125 6 19l.875-4 8.512-8.513a1.75 1.75 0 0 1 2.475 0Z"/>
+                            </svg>
+                        </a>
+                    @endcan
+                    @can('delete', $link)
+                        <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm({{ Js::from('Hapus asset link ini dari daftar kelola? Link akan diarsipkan.') }})">
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                type="submit"
+                                title="Hapus"
+                                class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-rose-300/20 bg-rose-400/10 text-rose-300 transition hover:bg-rose-400/18"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+                                    <path d="M4 7h16"/><path d="m9 7 .75-2h4.5L15 7"/><path d="M7.75 7 8.5 18.25A1.75 1.75 0 0 0 10.246 20h3.508A1.75 1.75 0 0 0 15.5 18.25L16.25 7"/><path d="M10 11v5"/><path d="M14 11v5"/>
+                                </svg>
+                            </button>
+                        </form>
+                    @endcan
+                @endif
             </div>
         </div>
     </article>
@@ -172,7 +200,7 @@
     @endif
 
 @empty
-    <div class="ah-empty-state {{ $dashboardMode ? 'sm:col-span-2' : '' }}">
+    <div class="ah-empty-state {{ ($dashboardMode || $manageMode) ? 'sm:col-span-2' : '' }}">
         <div class="ah-empty-state-spot">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7">
                 <path d="M9.12 14.88a3 3 0 0 1 0-4.243l3.536-3.536a3 3 0 1 1 4.243 4.243l-1.768 1.768"/>
