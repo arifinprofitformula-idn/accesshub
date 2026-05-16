@@ -53,6 +53,9 @@
             </div>
         </section>
 
-        @include('app.links.partials.list', ['emptyMessage' => 'Belum ada asset link yang bisa dikelola saat ini.'])
+        @include('app.links.partials.list', [
+            'emptyMessage' => 'Belum ada asset link yang bisa dikelola saat ini.',
+            'manageMode' => true,
+        ])
     </div>
 </x-internal-app-layout>

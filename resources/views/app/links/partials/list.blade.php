@@ -1,5 +1,9 @@
 <section class="grid gap-4 lg:hidden">
-    @forelse ($links as $link)
+@php
+    $manageMode = $manageMode ?? false;
+@endphp
+
+@forelse ($links as $link)
         @php
             $host = parse_url($link->url, PHP_URL_HOST) ?: $link->url;
             $host = str_replace('www.', '', $host);
@@ -49,10 +53,12 @@
             @can('update', $link)
                 <div class="mt-3 grid grid-cols-2 gap-3">
                     <a href="{{ route('app.links.edit', $link) }}" class="ah-secondary-btn w-full justify-center">Edit</a>
-                    <form method="POST" action="{{ route('app.links.destroy', $link) }}">
+                    <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('{{ $manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?' }}')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="ah-secondary-btn w-full justify-center text-rose-100">Arsip</button>
+                        <button type="submit" class="ah-secondary-btn w-full justify-center text-rose-100">
+                            {{ $manageMode ? 'Hapus' : 'Arsip' }}
+                        </button>
                     </form>
                 </div>
             @endcan
@@ -141,10 +147,12 @@
                                 </button>
                                 @can('update', $link)
                                     <a href="{{ route('app.links.edit', $link) }}" class="ah-secondary-btn px-4 py-2 text-xs">Edit</a>
-                                    <form method="POST" action="{{ route('app.links.destroy', $link) }}">
+                                    <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('{{ $manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?' }}')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="ah-secondary-btn px-4 py-2 text-xs text-rose-100">Arsip</button>
+                                        <button type="submit" class="ah-secondary-btn px-4 py-2 text-xs text-rose-100">
+                                            {{ $manageMode ? 'Hapus' : 'Arsip' }}
+                                        </button>
                                     </form>
                                 @endcan
                             </div>
