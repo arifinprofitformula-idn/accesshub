@@ -47,8 +47,13 @@
             </div>
 
             @can('update', $link)
-                <div class="mt-3">
+                <div class="mt-3 grid grid-cols-2 gap-3">
                     <a href="{{ route('app.links.edit', $link) }}" class="ah-secondary-btn w-full justify-center">Edit</a>
+                    <form method="POST" action="{{ route('app.links.destroy', $link) }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="ah-secondary-btn w-full justify-center text-rose-100">Arsip</button>
+                    </form>
                 </div>
             @endcan
         </article>
@@ -136,6 +141,11 @@
                                 </button>
                                 @can('update', $link)
                                     <a href="{{ route('app.links.edit', $link) }}" class="ah-secondary-btn px-4 py-2 text-xs">Edit</a>
+                                    <form method="POST" action="{{ route('app.links.destroy', $link) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="ah-secondary-btn px-4 py-2 text-xs text-rose-100">Arsip</button>
+                                    </form>
                                 @endcan
                             </div>
                         </td>

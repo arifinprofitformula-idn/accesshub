@@ -70,7 +70,7 @@ class Link extends Model
 
         static::saving(function (Link $link): void {
             Validator::make($link->attributesToArray(), [
-                'title' => ['required', 'string', 'max:255'],
+                'title' => ['required', 'string', 'max:150'],
                 'url' => ['required', 'url:http,https', 'max:2048'],
                 'description' => ['nullable', 'string', 'max:1000'],
                 'category_id' => ['nullable', 'integer'],
@@ -169,15 +169,16 @@ class Link extends Model
 
         return $query->where(function (Builder $builder) use ($roleIds, $user): void {
             $builder
-                ->where('visibility', 'internal')
-                ->orWhere(function (Builder $privateQuery) use ($user): void {
-                    $privateQuery
-                        ->where('visibility', 'private')
-                        ->where('created_by', $user->id);
+                ->where('created_by', $user->id)
+                ->orWhere(function (Builder $sharedQuery): void {
+                    $sharedQuery
+                        ->where('visibility', 'internal')
+                        ->whereNotNull('created_by');
                 })
                 ->orWhere(function (Builder $roleQuery) use ($roleIds): void {
                     $roleQuery
                         ->where('visibility', 'role')
+                        ->whereNotNull('created_by')
                         ->whereHas('visibleToRoles', fn (Builder $rolesQuery) => $rolesQuery->whereIn('roles.id', $roleIds));
                 });
         });
@@ -189,11 +190,20 @@ class Link extends Model
             return true;
         }
 
+        if ($this->created_by === $user->id) {
+            return true;
+        }
+
         return match ($this->visibility) {
-            'internal' => true,
-            'private' => $this->created_by === $user->id,
-            'role' => $this->visibleToRoles()->whereIn('roles.id', $user->roles->modelKeys())->exists(),
+            'internal' => filled($this->created_by),
+            'private' => false,
+            'role' => filled($this->created_by) && $this->visibleToRoles()->whereIn('roles.id', $user->roles->modelKeys())->exists(),
             default => false,
         };
+    }
+
+    public function isOwnedBy(User $user): bool
+    {
+        return $this->created_by === $user->id;
     }
 }

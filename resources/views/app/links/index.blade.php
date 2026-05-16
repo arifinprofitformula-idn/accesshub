@@ -2,7 +2,7 @@
     title="Daftar Link | AccessHub"
     eyebrow="Link Library"
     heading="Daftar Link"
-    subheading="Lihat seluruh link aktif, cari cepat, lalu buka tanpa banyak langkah."
+    subheading="Cari cepat link milik Anda atau link shared yang memang bisa Anda akses."
 >
     <div x-data="{ copied: null }" class="space-y-7 sm:space-y-8">
         <section class="ah-panel p-4 sm:p-6 lg:p-7">

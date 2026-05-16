@@ -85,13 +85,26 @@
     }
 
     .ah-mobile-nav-item {
-        @apply flex min-h-14 w-full flex-col items-center justify-center rounded-[1.1rem] border px-1 py-1.5 text-center transition;
+        @apply flex min-h-12 w-full flex-col items-center justify-center rounded-[1rem] border px-1 py-1 text-center transition;
+    }
+
+    .ah-mobile-nav-item[data-featured='true'] {
+        @apply relative -translate-y-1 border-cyan-300/30 text-white;
+        background-color: rgba(255, 255, 255, 0.04);
+        box-shadow: none;
     }
 
     .ah-mobile-nav-icon {
         @apply flex items-center justify-center rounded-[0.9rem] text-slate-950 shadow-[0_12px_28px_-20px_rgba(15,23,42,0.95)];
-        width: 2.125rem;
-        height: 2.125rem;
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .ah-mobile-nav-item[data-featured='true'] .ah-mobile-nav-icon {
+        width: 2.9rem;
+        height: 2.9rem;
+        border-radius: 9999px;
+        box-shadow: 0 16px 30px -20px rgba(34, 211, 238, 0.95);
     }
 
     .ah-mobile-nav-label {
@@ -104,6 +117,10 @@
 
     .ah-mobile-nav-item[data-active='true'] .ah-mobile-nav-label {
         @apply opacity-100;
+    }
+
+    .ah-mobile-nav-item[data-featured='true'] .ah-mobile-nav-label {
+        @apply mt-1 text-[8px] tracking-[0.16em] text-cyan-100 opacity-100;
     }
 
     .ah-mobile-nav-item[data-active='true'] .ah-mobile-nav-icon {

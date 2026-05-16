@@ -37,7 +37,7 @@ class LinkPolicy
             return false;
         }
 
-        return $user->hasRole('admin') || $link->created_by === $user->id;
+        return $user->hasRole('admin') || $link->isOwnedBy($user);
     }
 
     public function delete(User $user, Link $link): bool
@@ -46,12 +46,12 @@ class LinkPolicy
             return false;
         }
 
-        return $user->hasRole('admin') || $link->created_by === $user->id;
+        return $user->hasRole('admin') || $link->isOwnedBy($user);
     }
 
     public function restore(User $user, Link $link): bool
     {
-        return $user->can('links.delete');
+        return $user->can('links.delete') && ($user->hasRole('admin') || $link->isOwnedBy($user));
     }
 
     public function forceDelete(User $user, Link $link): bool
@@ -61,7 +61,7 @@ class LinkPolicy
 
     public function archive(User $user, Link $link): bool
     {
-        return $user->can('links.archive');
+        return $user->can('links.archive') && ($user->hasRole('admin') || $link->isOwnedBy($user));
     }
 
     public function open(User $user, Link $link): bool

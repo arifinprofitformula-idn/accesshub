@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreLinkRequest;
+use App\Http\Requests\UpdateLinkRequest;
 use App\Models\Category;
 use App\Models\Link;
 use App\Models\Tag;
@@ -25,25 +27,11 @@ class LinkController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $visibleLinks = Link::query()
-            ->visibleTo($user)
-            ->where('status', 'active');
-
         return view('app.dashboard', [
             'links' => $links,
             'categories' => $this->categories(),
             'favoriteIds' => $this->favoriteIds($user),
             'filters' => $filters,
-            'stats' => [
-                'total_links' => (clone $visibleLinks)->count(),
-                'favorite_links' => $user->favorites()->count(),
-                'categories' => Category::query()->where('is_active', true)->count(),
-            ],
-            'recentLinks' => (clone $visibleLinks)
-                ->with(['category', 'tags'])
-                ->latest()
-                ->take(4)
-                ->get(),
         ]);
     }
 
@@ -73,11 +61,9 @@ class LinkController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreLinkRequest $request): RedirectResponse
     {
-        $this->authorize('create', Link::class);
-
-        $validated = $this->validateLink($request);
+        $validated = $request->validated();
 
         $link = Link::create([
             'title' => $validated['title'],
@@ -87,8 +73,9 @@ class LinkController extends Controller
             'platform' => $this->extractDomain($validated['url']),
             'priority' => 'normal',
             'status' => 'active',
-            'visibility' => $this->resolveStoredVisibility($validated['visibility'] ?? 'shared'),
+            'visibility' => $this->resolveStoredVisibility($validated['visibility'] ?? 'private'),
             'owner_name' => $request->user()->name,
+            'created_by' => $request->user()->id,
         ]);
 
         $this->syncTags($link, $validated['tags'] ?? null);
@@ -112,13 +99,11 @@ class LinkController extends Controller
         ]);
     }
 
-    public function update(Request $request, Link $link): RedirectResponse
+    public function update(UpdateLinkRequest $request, Link $link): RedirectResponse
     {
-        $this->authorize('update', $link);
+        $validated = $request->validated();
 
-        $validated = $this->validateLink($request);
-
-        $storedVisibility = $this->resolveStoredVisibility($validated['visibility'] ?? 'shared', $link);
+        $storedVisibility = $this->resolveStoredVisibility($validated['visibility'] ?? 'private', $link);
 
         $link->update([
             'title' => $validated['title'],
@@ -195,24 +180,19 @@ class LinkController extends Controller
 
     protected function validateFilters(Request $request): array
     {
-        return $request->validate([
+        $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'integer', 'exists:categories,id'],
             'favorites' => ['nullable', 'boolean'],
             'status' => ['nullable', 'in:active,needs_review,archived'],
-        ]);
-    }
-
-    protected function validateLink(Request $request): array
-    {
-        return $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'url' => ['required', 'url:http,https', 'max:2048'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'tags' => ['nullable', 'string', 'max:255'],
             'visibility' => ['nullable', 'in:private,shared'],
         ]);
+
+        if (! $request->user()?->hasAnyRole(['super_admin', 'admin'])) {
+            unset($filters['status']);
+        }
+
+        return $filters;
     }
 
     protected function buildFilteredQuery($user, array $filters): Builder
@@ -224,7 +204,7 @@ class LinkController extends Controller
             ->search($filters['search'] ?? null)
             ->when($filters['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
             ->when(
-                isset($filters['status']),
+                isset($filters['status']) && $user->hasAnyRole(['super_admin', 'admin']),
                 fn (Builder $query) => $query->where('status', $filters['status']),
                 fn (Builder $query) => $query->where('status', 'active')
             )

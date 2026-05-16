@@ -63,17 +63,52 @@
                 'visible' => true,
             ],
         ])->filter(fn (array $item): bool => $item['visible']);
+
+        $mobileNavItems = collect([
+            [
+                'label' => 'Tambah Link',
+                'route' => route('app.links.create'),
+                'active' => request()->routeIs('app.links.create'),
+                'icon' => 'plus',
+                'visible' => auth()->user()->can('create', \App\Models\Link::class),
+                'featured' => false,
+            ],
+            [
+                'label' => 'Favorit',
+                'route' => route('app.favorites'),
+                'active' => request()->boolean('favorites') || request()->routeIs('app.favorites'),
+                'icon' => 'star',
+                'visible' => true,
+                'featured' => false,
+            ],
+            [
+                'label' => 'HOME',
+                'route' => route('dashboard'),
+                'active' => request()->routeIs('dashboard', 'app.dashboard'),
+                'icon' => 'dashboard',
+                'visible' => true,
+                'featured' => true,
+            ],
+            [
+                'label' => 'Profil',
+                'route' => route('profile.edit'),
+                'active' => request()->routeIs('profile.*'),
+                'icon' => 'profile',
+                'visible' => true,
+                'featured' => false,
+            ],
+        ])->filter(fn (array $item): bool => $item['visible']);
     @endphp
     <body class="min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.12),transparent_24%),linear-gradient(180deg,#020617_0%,#081120_100%)] font-sans text-slate-100 antialiased">
         <div class="min-h-screen">
             <header class="border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
-                <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-5 lg:px-6">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
                         <div class="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-cyan-300 via-sky-400 to-blue-600 text-lg font-semibold text-slate-950 shadow-[0_18px_45px_-24px_rgba(34,211,238,0.95)]">
                             AH
                         </div>
                         <div>
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">Personal Link Search</p>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">Personal And Team Link Manager</p>
                             <h1 class="text-lg font-semibold text-white">AccessHub</h1>
                         </div>
                     </a>
@@ -95,7 +130,7 @@
                     </div>
                 </div>
 
-                <div class="mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8">
+                <div class="px-4 pb-5 sm:px-5 lg:px-6">
                     <div class="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(8,17,32,0.94)_52%,rgba(91,33,182,0.12)_100%)] p-5 shadow-[0_28px_65px_-42px_rgba(34,211,238,0.75)] sm:p-6">
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                             <div>
@@ -121,8 +156,8 @@
                 </div>
             </header>
 
-            <main class="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-                <div class="mx-auto max-w-7xl">
+            <main class="px-4 py-6 pb-24 sm:px-5 md:pb-6 lg:px-6 lg:py-8">
+                <div class="w-full">
                     @if (session('status'))
                         <div class="ah-alert-success mb-6">
                             {{ session('status') }}
@@ -147,14 +182,15 @@
 
             @include('layouts.partials.pwa-shell')
 
-            <nav class="sticky bottom-0 border-t border-white/10 bg-slate-950/92 px-2 py-2 backdrop-blur-2xl md:hidden">
-                <div class="mx-auto grid max-w-md grid-cols-5 items-center gap-1">
-                    @foreach ($navItems as $item)
+            <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-slate-950/94 px-2 py-1.5 backdrop-blur-2xl md:hidden">
+                <div class="grid w-full grid-cols-5 items-end gap-1">
+                    @foreach ($mobileNavItems as $item)
                         <a
                             href="{{ $item['route'] }}"
                             aria-label="{{ $item['label'] }}"
                             data-active="{{ $item['active'] ? 'true' : 'false' }}"
                             data-inactive="{{ $item['active'] ? 'false' : 'true' }}"
+                            data-featured="{{ $item['featured'] ? 'true' : 'false' }}"
                             class="{{ $item['active'] ? 'border-cyan-300/20 bg-white/10 text-white' : 'border-transparent text-slate-400' }} ah-mobile-nav-item"
                         >
                             <span class="ah-mobile-nav-icon bg-gradient-to-br from-cyan-300 via-sky-400 to-violet-500">
@@ -165,7 +201,7 @@
                             </span>
                         </a>
                     @endforeach
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <button
                             type="submit"

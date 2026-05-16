@@ -46,56 +46,30 @@ class AccessHubPhaseThreeTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_staff_only_sees_access_items_granted_to_them(): void
+    public function test_staff_can_not_access_legacy_access_items_route(): void
     {
         $staff = User::factory()->create();
         $staff->assignRole('staff');
 
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-
-        $staffVisible = AccessItem::factory()->create([
-            'platform_name' => 'Staff Visible Item',
-            'category_id' => $this->category->id,
-            'created_by' => $admin->id,
-        ]);
-        $staffVisible->visibleToRoles()->sync([Role::where('name', 'staff')->value('id')]);
-
-        $adminOnly = AccessItem::factory()->create([
-            'platform_name' => 'Admin Only Item',
-            'category_id' => $this->category->id,
-            'created_by' => $admin->id,
-        ]);
-        $adminOnly->visibleToRoles()->sync([Role::where('name', 'admin')->value('id')]);
-
-        $privateOwn = AccessItem::factory()->create([
-            'platform_name' => 'Staff Own Item',
-            'category_id' => $this->category->id,
-            'created_by' => $staff->id,
-        ]);
-
-        $response = $this->actingAs($staff)->get(route('app.access-items.index'));
-
-        $response->assertOk();
-        $response->assertSeeText($staffVisible->platform_name);
-        $response->assertSeeText($privateOwn->platform_name);
-        $response->assertDontSeeText($adminOnly->platform_name);
+        $this->actingAs($staff)
+            ->get(route('app.access-items.index'))
+            ->assertForbidden();
     }
 
     public function test_access_item_open_route_logs_activity(): void
     {
-        $staff = User::factory()->create();
-        $staff->assignRole('staff');
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
 
         $accessItem = AccessItem::factory()->create([
             'platform_name' => 'Staff Open Item',
             'login_url' => 'https://accounts.google.com/',
             'category_id' => $this->category->id,
-            'created_by' => $staff->id,
+            'created_by' => $admin->id,
         ]);
-        $accessItem->visibleToRoles()->sync([Role::where('name', 'staff')->value('id')]);
+        $accessItem->visibleToRoles()->sync([Role::where('name', 'admin')->value('id')]);
 
-        $response = $this->actingAs($staff)->get(route('app.access-items.open', $accessItem));
+        $response = $this->actingAs($admin)->get(route('app.access-items.open', $accessItem));
 
         $response->assertRedirect('https://accounts.google.com/');
 

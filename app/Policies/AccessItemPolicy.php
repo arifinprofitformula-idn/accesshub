@@ -18,32 +18,32 @@ class AccessItemPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('access_items.view');
+        return $user->hasRole('admin') && $user->can('access_items.view');
     }
 
     public function view(User $user, AccessItem $accessItem): bool
     {
-        return $user->can('access_items.view') && $accessItem->isVisibleTo($user);
+        return $user->hasRole('admin') && $user->can('access_items.view') && $accessItem->isVisibleTo($user);
     }
 
     public function create(User $user): bool
     {
-        return $user->can('access_items.create');
+        return $user->hasRole('admin') && $user->can('access_items.create');
     }
 
     public function update(User $user, AccessItem $accessItem): bool
     {
-        return $user->can('access_items.update');
+        return $user->hasRole('admin') && $user->can('access_items.update');
     }
 
     public function delete(User $user, AccessItem $accessItem): bool
     {
-        return $user->can('access_items.delete');
+        return $user->hasRole('admin') && $user->can('access_items.delete');
     }
 
     public function restore(User $user, AccessItem $accessItem): bool
     {
-        return $user->can('access_items.delete');
+        return $user->hasRole('admin') && $user->can('access_items.delete');
     }
 
     public function forceDelete(User $user, AccessItem $accessItem): bool
@@ -53,11 +53,11 @@ class AccessItemPolicy
 
     public function archive(User $user, AccessItem $accessItem): bool
     {
-        return $user->can('access_items.archive');
+        return $user->hasRole('admin') && $user->can('access_items.archive');
     }
 
     public function open(User $user, AccessItem $accessItem): bool
     {
-        return $user->can('access_items.open') && $this->view($user, $accessItem);
+        return $user->hasRole('admin') && $user->can('access_items.open') && $this->view($user, $accessItem);
     }
 }

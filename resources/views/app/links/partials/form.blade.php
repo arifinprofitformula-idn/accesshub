@@ -1,6 +1,6 @@
 @php
     $selectedCategory = old('category_id', data_get($link, 'category_id'));
-    $selectedVisibility = old('visibility', $selectedVisibility ?? 'shared');
+    $selectedVisibility = old('visibility', $selectedVisibility ?? 'private');
     $tagValue = old('tags', $tagString ?? '');
 @endphp
 
@@ -35,9 +35,10 @@
             <div>
                 <label for="visibility" class="mb-2 block text-sm font-semibold text-cyan-200">Visibility</label>
                 <select id="visibility" name="visibility" class="ah-select">
-                    <option value="shared" @selected($selectedVisibility === 'shared')>Shared</option>
                     <option value="private" @selected($selectedVisibility === 'private')>Private</option>
+                    <option value="shared" @selected($selectedVisibility === 'shared')>Shared</option>
                 </select>
+                <p class="mt-2 text-xs text-slate-400">Private hanya untuk Anda. Shared bisa dilihat user login lain, tetapi tetap tidak bisa mereka edit.</p>
             </div>
 
             <div class="lg:col-span-2">
