@@ -21,6 +21,7 @@ class StoreLinkRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'tags' => ['nullable', 'string', 'max:255'],
             'visibility' => ['nullable', 'in:private,shared'],
+            'add_to_favorites' => ['nullable', 'boolean'],
         ];
     }
 }

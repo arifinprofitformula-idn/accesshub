@@ -51,6 +51,22 @@
                 <input id="tags" name="tags" type="text" value="{{ $tagValue }}" class="ah-input" placeholder="Contoh: proposal, marketing, client-a">
                 <p class="mt-2 text-xs text-slate-400">Pisahkan beberapa tag dengan koma.</p>
             </div>
+
+            @if ($isCreate ?? false)
+            <div class="lg:col-span-2">
+                <label class="mb-2 block text-sm font-semibold text-cyan-200">Favorit</label>
+                <label class="inline-flex cursor-pointer items-center gap-3">
+                    <input
+                        type="checkbox"
+                        name="add_to_favorites"
+                        value="1"
+                        {{ old('add_to_favorites') ? 'checked' : '' }}
+                        class="h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/30"
+                    >
+                    <span class="text-sm text-slate-300">Tambahkan ke favorit setelah disimpan</span>
+                </label>
+            </div>
+            @endif
         </div>
 
         <div class="flex flex-col gap-3 pt-1 sm:flex-row">

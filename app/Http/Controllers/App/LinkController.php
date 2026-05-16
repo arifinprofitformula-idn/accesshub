@@ -97,6 +97,10 @@ class LinkController extends Controller
 
         $this->syncTags($link, $validated['tags'] ?? null);
 
+        if (filter_var($validated['add_to_favorites'] ?? false, FILTER_VALIDATE_BOOL)) {
+            $request->user()->favorites()->firstOrCreate(['link_id' => $link->id]);
+        }
+
         return redirect()
             ->route('dashboard')
             ->with('status', 'Link berhasil disimpan.');

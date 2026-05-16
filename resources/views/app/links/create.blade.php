@@ -10,5 +10,6 @@
         'link' => null,
         'tagString' => '',
         'selectedVisibility' => 'private',
+        'isCreate' => true,
     ])
 </x-internal-app-layout>
