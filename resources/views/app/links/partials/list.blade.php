@@ -255,7 +255,43 @@
                                                 </svg>
                                             </button>
                                         </form>
+                                        @endunless
                                     @endcan
+                                </div>
+                            @elseif ($dashboardMode)
+                                <div class="flex flex-wrap gap-2">
+                                    <a
+                                        href="{{ route('app.links.open', $link) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="Buka"
+                                        aria-label="Buka"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/12 text-cyan-100 transition hover:border-cyan-300/35 hover:bg-cyan-400/18"
+                                    >
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                            <path d="M7 17 17 7" />
+                                            <path d="M8.5 7H17v8.5" />
+                                        </svg>
+                                    </a>
+                                    <button
+                                        type="button"
+                                        title="Copy Link"
+                                        aria-label="Copy Link"
+                                        x-on:click="navigator.clipboard.writeText(@js($link->url)); copied = {{ $link->id }}"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+                                    >
+                                        <span x-show="copied !== {{ $link->id }}">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                                <rect x="9" y="9" width="10" height="10" rx="2" />
+                                                <path d="M6 15V7a2 2 0 0 1 2-2h8" />
+                                            </svg>
+                                        </span>
+                                        <span x-show="copied === {{ $link->id }}" class="text-cyan-200">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                                <path d="m5 13 4 4L19 7" />
+                                            </svg>
+                                        </span>
+                                    </button>
                                 </div>
                             @else
                                 <div class="flex flex-wrap gap-2">
@@ -319,7 +355,6 @@
                                                 </svg>
                                             </button>
                                         </form>
-                                        @endunless
                                     @endcan
                                 </div>
                             @endif

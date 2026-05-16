@@ -17,7 +17,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('password.confirm') }}" class="space-y-5">
+        <form method="POST" action="{{ route('password.confirm', absolute: false) }}" class="space-y-5">
             @csrf
 
             <div>

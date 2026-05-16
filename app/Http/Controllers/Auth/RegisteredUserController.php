@@ -45,7 +45,7 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        return redirect()->route('login')
+        return redirect()->to(route('login', absolute: false))
             ->with('status', 'Pendaftaran berhasil. Akun Anda sedang menunggu persetujuan admin.');
     }
 }

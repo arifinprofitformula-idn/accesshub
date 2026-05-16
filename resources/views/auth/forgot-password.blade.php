@@ -238,7 +238,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('password.email') }}">
+                <form method="POST" action="{{ route('password.email', absolute: false) }}">
                     @csrf
 
                     <div>
@@ -259,7 +259,7 @@
                 </form>
 
                 <div class="helper">
-                    <a href="{{ route('login') }}" class="link">Kembali ke login</a>
+                    <a href="{{ route('login', absolute: false) }}" class="link">Kembali ke login</a>
                 </div>
             </section>
         </main>

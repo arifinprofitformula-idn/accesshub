@@ -17,8 +17,10 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->useFileBackedStoresUntilDatabaseTablesExist();
+        $this->useStableLivewireEndpointsForLocalDevelopment();
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
@@ -75,5 +78,19 @@ class AppServiceProvider extends ServiceProvider
                 'session.driver' => 'file',
             ]);
         }
+    }
+
+    /**
+     * Use stable, non-versioned Livewire endpoints in local development to
+     * avoid stale browser state after frequent code or cache changes.
+     */
+    protected function useStableLivewireEndpointsForLocalDevelopment(): void
+    {
+        if (! $this->app->isLocal()) {
+            return;
+        }
+
+        Livewire::setUpdateRoute(fn ($handle) => Route::post('/livewire/update', $handle)->name('local-livewire.update'));
+        Livewire::setScriptRoute(fn ($handle) => Route::get('/livewire/livewire.js', $handle)->name('local-livewire.script'));
     }
 }

@@ -74,7 +74,7 @@
                     <section class="relative">
                         <div class="glass-card neon-border mx-auto w-full max-w-lg p-5 sm:p-8">
                             <div class="mb-8 text-center">
-                                <a href="{{ route('login') }}" class="inline-flex flex-col items-center gap-4">
+                                <a href="{{ route('login', absolute: false) }}" class="inline-flex flex-col items-center gap-4">
                                     @if (file_exists(public_path('images/accesshub-auth-logo.png')))
                                         <img
                                             src="{{ asset('images/accesshub-auth-logo.png') }}"

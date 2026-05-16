@@ -446,7 +446,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('login', absolute: false) }}">
                         @csrf
 
                         <div>
@@ -482,7 +482,7 @@
                             </label>
 
                             @if (Route::has('password.request'))
-                                <a class="link" href="{{ route('password.request') }}">Lupa password?</a>
+                                <a class="link" href="{{ route('password.request', absolute: false) }}">Lupa password?</a>
                             @endif
                         </div>
 

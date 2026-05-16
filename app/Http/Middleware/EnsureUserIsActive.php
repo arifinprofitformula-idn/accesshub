@@ -26,7 +26,7 @@ class EnsureUserIsActive
             $this->logout($request);
 
             return redirect()
-                ->route('login')
+                ->to(route('login', absolute: false))
                 ->withErrors(['email' => 'Akun Anda tidak aktif. Hubungi admin.']);
         }
 
@@ -34,7 +34,7 @@ class EnsureUserIsActive
             $this->logout($request);
 
             return redirect()
-                ->route('login')
+                ->to(route('login', absolute: false))
                 ->withErrors(['email' => 'Akun Anda sedang menunggu persetujuan admin.']);
         }
 

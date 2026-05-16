@@ -6,7 +6,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->to(route('login', absolute: false));
 });
 
 Route::view('/offline', 'offline')->name('offline');
