@@ -2,6 +2,25 @@
     $manageMode = $manageMode ?? false;
     $dashboardMode = $dashboardMode ?? false;
     $showTags = $showTags ?? true;
+
+    $cardColors = [
+        [
+            'card'     => 'border-cyan-300/20 bg-[linear-gradient(135deg,rgba(15,23,42,0.88),rgba(34,211,238,0.07))] shadow-[0_12px_32px_-18px_rgba(34,211,238,0.32)]',
+            'category' => 'text-cyan-300/80',
+        ],
+        [
+            'card'     => 'border-violet-300/20 bg-[linear-gradient(135deg,rgba(15,23,42,0.88),rgba(139,92,246,0.09))] shadow-[0_12px_32px_-18px_rgba(139,92,246,0.32)]',
+            'category' => 'text-violet-300/80',
+        ],
+        [
+            'card'     => 'border-emerald-300/20 bg-[linear-gradient(135deg,rgba(15,23,42,0.88),rgba(52,211,153,0.07))] shadow-[0_12px_32px_-18px_rgba(52,211,153,0.28)]',
+            'category' => 'text-emerald-300/80',
+        ],
+        [
+            'card'     => 'border-amber-300/20 bg-[linear-gradient(135deg,rgba(15,23,42,0.88),rgba(251,191,36,0.07))] shadow-[0_12px_32px_-18px_rgba(251,191,36,0.28)]',
+            'category' => 'text-amber-300/80',
+        ],
+    ];
 @endphp
 
 {{-- Mobile / small screen cards --}}
@@ -12,14 +31,15 @@
         $host = str_replace('www.', '', $host);
         $isFavorite = in_array($link->id, $favoriteIds, true);
         $visibilityLabel = $link->visibility === 'private' ? 'Private' : 'Shared';
+        $c = $cardColors[$loop->index % count($cardColors)];
     @endphp
 
     @if ($dashboardMode || $manageMode)
     {{-- Compact card (dashboard & manage) --}}
-    <article class="ah-panel rounded-xl p-3">
+    <article class="rounded-xl border backdrop-blur-2xl p-3 {{ $c['card'] }}">
         <div class="flex items-start gap-2">
             <div class="min-w-0 flex-1">
-                <p class="truncate text-[10px] font-semibold uppercase tracking-wider text-cyan-300/70">{{ $link->category?->name ?? 'Tanpa kategori' }}</p>
+                <p class="truncate text-[10px] font-semibold uppercase tracking-wider {{ $c['category'] }}">{{ $link->category?->name ?? 'Tanpa kategori' }}</p>
                 <h2 class="mt-0.5 line-clamp-1 text-[13px] font-semibold leading-snug text-white">{{ $link->title }}</h2>
                 <p class="mt-0.5 line-clamp-1 text-[11px] leading-snug text-slate-400">{{ $link->description ?: $host }}</p>
             </div>
@@ -230,11 +250,12 @@
             $host = parse_url($link->url, PHP_URL_HOST) ?: $link->url;
             $host = str_replace('www.', '', $host);
             $isFavorite = in_array($link->id, $favoriteIds, true);
+            $c = $cardColors[$loop->index % count($cardColors)];
         @endphp
-        <article class="ah-panel p-3">
+        <article class="rounded-xl border backdrop-blur-2xl p-3 {{ $c['card'] }}">
             <div class="flex items-start gap-2">
                 <div class="min-w-0 flex-1">
-                    <p class="truncate text-[10px] font-semibold uppercase tracking-wider text-cyan-300/70">{{ $link->category?->name ?? 'Tanpa kategori' }}</p>
+                    <p class="truncate text-[10px] font-semibold uppercase tracking-wider {{ $c['category'] }}">{{ $link->category?->name ?? 'Tanpa kategori' }}</p>
                     <h2 class="mt-0.5 line-clamp-1 text-[13px] font-semibold leading-snug text-white" title="{{ $link->title }}">{{ $link->title }}</h2>
                     <p class="mt-0.5 line-clamp-1 text-[11px] leading-snug text-slate-400" title="{{ $link->description ?: $host }}">{{ $link->description ?: $host }}</p>
                 </div>
