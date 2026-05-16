@@ -72,15 +72,26 @@ class RolesAndPermissionsSeeder extends Seeder
                 'access_items.open',
                 'favorites.manage',
             ],
+            // user = primary role for regular users (link asset management)
+            'user' => [
+                'dashboard.view',
+                'links.view',
+                'links.create',
+                'links.update',
+                'links.delete',
+                'links.archive',
+                'links.open',
+                'favorites.manage',
+            ],
+            // staff kept for backward compatibility with existing user accounts
             'staff' => [
                 'dashboard.view',
                 'links.view',
                 'links.create',
                 'links.update',
                 'links.delete',
+                'links.archive',
                 'links.open',
-                'access_items.view',
-                'access_items.open',
                 'favorites.manage',
             ],
         ];

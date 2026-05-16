@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'avatar' => null,
             'is_active' => true,
             'last_login_at' => null,
+            'approved_at' => now(),
             'remember_token' => Str::random(10),
         ];
     }

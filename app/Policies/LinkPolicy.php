@@ -7,7 +7,7 @@ use App\Models\User;
 
 class LinkPolicy
 {
-    public function before(User $user, string $ability): ?bool
+    public function before(User $user, string $_ability): ?bool
     {
         if ($user->hasRole('super_admin')) {
             return true;
@@ -33,44 +33,36 @@ class LinkPolicy
 
     public function update(User $user, Link $link): bool
     {
-        if (! $user->can('links.update')) {
-            return false;
-        }
-
-        return $user->hasRole('admin') || $link->isOwnedBy($user);
+        return $user->can('links.update') && $link->isOwnedBy($user);
     }
 
     public function delete(User $user, Link $link): bool
     {
-        if (! $user->can('links.delete')) {
-            return false;
-        }
-
-        return $user->hasRole('admin') || $link->isOwnedBy($user);
+        return $user->can('links.delete') && $link->isOwnedBy($user);
     }
 
     public function restore(User $user, Link $link): bool
     {
-        return $user->can('links.delete') && ($user->hasRole('admin') || $link->isOwnedBy($user));
+        return $user->can('links.delete') && $link->isOwnedBy($user);
     }
 
-    public function forceDelete(User $user, Link $link): bool
+    public function forceDelete(User $_user, Link $_link): bool
     {
         return false;
     }
 
     public function archive(User $user, Link $link): bool
     {
-        return $user->can('links.archive') && ($user->hasRole('admin') || $link->isOwnedBy($user));
+        return $user->can('links.archive') && $link->isOwnedBy($user);
     }
 
     public function open(User $user, Link $link): bool
     {
-        return $user->can('links.open') && $this->view($user, $link);
+        return $user->can('links.open') && $link->isVisibleTo($user);
     }
 
     public function favorite(User $user, Link $link): bool
     {
-        return $user->can('favorites.manage') && $this->view($user, $link);
+        return $user->can('favorites.manage') && $link->isVisibleTo($user);
     }
 }

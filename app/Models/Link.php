@@ -161,45 +161,21 @@ class Link extends Model
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+        if ($user->hasRole('super_admin')) {
             return $query;
         }
 
-        $roleIds = $user->roles->modelKeys();
-
-        return $query->where(function (Builder $builder) use ($roleIds, $user): void {
-            $builder
-                ->where('created_by', $user->id)
-                ->orWhere(function (Builder $sharedQuery): void {
-                    $sharedQuery
-                        ->where('visibility', 'internal')
-                        ->whereNotNull('created_by');
-                })
-                ->orWhere(function (Builder $roleQuery) use ($roleIds): void {
-                    $roleQuery
-                        ->where('visibility', 'role')
-                        ->whereNotNull('created_by')
-                        ->whereHas('visibleToRoles', fn (Builder $rolesQuery) => $rolesQuery->whereIn('roles.id', $roleIds));
-                });
-        });
+        // All other users (admin, staff, user) only see their own links.
+        return $query->where('created_by', $user->id);
     }
 
     public function isVisibleTo(User $user): bool
     {
-        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
 
-        if ($this->created_by === $user->id) {
-            return true;
-        }
-
-        return match ($this->visibility) {
-            'internal' => filled($this->created_by),
-            'private' => false,
-            'role' => filled($this->created_by) && $this->visibleToRoles()->whereIn('roles.id', $user->roles->modelKeys())->exists(),
-            default => false,
-        };
+        return $this->created_by === $user->id;
     }
 
     public function isOwnedBy(User $user): bool

@@ -28,6 +28,7 @@
             }
 
             body {
+                position: relative;
                 margin: 0;
                 min-height: 100vh;
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -36,9 +37,41 @@
                     radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.14), transparent 30%),
                     linear-gradient(180deg, #020617 0%, var(--bg) 100%);
                 color: var(--text);
+                overflow: hidden;
+            }
+
+            body::before,
+            body::after {
+                content: "";
+                position: fixed;
+                inset: -12%;
+                pointer-events: none;
+                z-index: 0;
+            }
+
+            body::before {
+                background:
+                    radial-gradient(circle at 18% 22%, rgba(125, 211, 252, 0.22), transparent 0 22%),
+                    radial-gradient(circle at 78% 28%, rgba(186, 230, 253, 0.14), transparent 0 18%),
+                    radial-gradient(circle at 65% 78%, rgba(56, 189, 248, 0.12), transparent 0 20%);
+                filter: blur(20px);
+                animation: auroraFloat 18s ease-in-out infinite alternate;
+            }
+
+            body::after {
+                background:
+                    linear-gradient(118deg, transparent 26%, rgba(255, 255, 255, 0.085) 34%, transparent 42%),
+                    linear-gradient(128deg, transparent 58%, rgba(103, 232, 249, 0.11) 64%, transparent 70%),
+                    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.035) 50%, transparent 100%);
+                mix-blend-mode: screen;
+                opacity: 0.9;
+                transform: translate3d(-4%, 0, 0) scale(1.08);
+                animation: lightSweep 14s linear infinite;
             }
 
             .page {
+                position: relative;
+                z-index: 1;
                 min-height: 100vh;
                 display: grid;
                 place-items: center;
@@ -51,23 +84,43 @@
                 display: grid;
                 gap: 28px;
                 grid-template-columns: 1.15fr 0.85fr;
-                align-items: center;
+                align-items: stretch;
             }
 
             .hero,
             .panel {
+                position: relative;
                 border: 1px solid var(--panel-border);
                 background: var(--panel);
                 backdrop-filter: blur(14px);
                 border-radius: 28px;
                 box-shadow: 0 28px 80px rgba(2, 6, 23, 0.45);
+                overflow: hidden;
+            }
+
+            .hero::before,
+            .panel::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                background:
+                    linear-gradient(140deg, rgba(125, 211, 252, 0.12), transparent 22%),
+                    linear-gradient(320deg, rgba(14, 165, 233, 0.08), transparent 24%);
+                opacity: 0.9;
             }
 
             .hero {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
                 padding: 40px;
             }
 
             .panel {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
                 padding: 32px;
             }
 
@@ -115,6 +168,7 @@
             }
 
             .metric {
+                position: relative;
                 border-radius: 20px;
                 padding: 18px;
                 background: rgba(15, 23, 42, 0.76);
@@ -131,6 +185,7 @@
             }
 
             .brand {
+                position: relative;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -193,8 +248,30 @@
             }
 
             form {
+                position: relative;
                 display: grid;
                 gap: 18px;
+            }
+
+            @keyframes auroraFloat {
+                0% {
+                    transform: translate3d(-1%, -2%, 0) scale(1);
+                }
+                50% {
+                    transform: translate3d(2%, 1%, 0) scale(1.04);
+                }
+                100% {
+                    transform: translate3d(-2%, 3%, 0) scale(1.02);
+                }
+            }
+
+            @keyframes lightSweep {
+                0% {
+                    transform: translate3d(-12%, 0, 0) scale(1.08);
+                }
+                100% {
+                    transform: translate3d(12%, 0, 0) scale(1.1);
+                }
             }
 
             label {
@@ -284,6 +361,10 @@
 
                 .hero {
                     display: none;
+                }
+
+                body::after {
+                    opacity: 0.55;
                 }
             }
 

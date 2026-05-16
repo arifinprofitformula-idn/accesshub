@@ -2,9 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\AccessItems\AccessItemResource;
 use App\Filament\Resources\Categories\CategoryResource;
-use App\Filament\Resources\Links\LinkResource;
 use App\Filament\Resources\Users\UserResource;
 use Filament\Widgets\Widget;
 
@@ -20,37 +18,27 @@ class AdminQuickActions extends Widget
 
     protected function getViewData(): array
     {
-        return [
-            'items' => [
-                [
-                    'label' => 'Links',
-                    'hint' => 'Kelola link',
-                    'url' => LinkResource::getUrl(),
-                    'theme' => 'cyan',
-                    'icon' => 'link',
-                ],
-                [
-                    'label' => 'Access',
-                    'hint' => 'Data akses',
-                    'url' => AccessItemResource::getUrl(),
-                    'theme' => 'amber',
-                    'icon' => 'shield',
-                ],
-                [
-                    'label' => 'Kategori',
-                    'hint' => 'Struktur konten',
-                    'url' => CategoryResource::getUrl(),
-                    'theme' => 'emerald',
-                    'icon' => 'grid',
-                ],
-                [
-                    'label' => 'Users',
-                    'hint' => 'Hak akses user',
-                    'url' => UserResource::getUrl(),
-                    'theme' => 'fuchsia',
-                    'icon' => 'users',
-                ],
+        $items = [
+            [
+                'label' => 'Pengguna',
+                'hint' => 'Kelola akun user',
+                'url' => UserResource::getUrl(),
+                'theme' => 'fuchsia',
+                'icon' => 'users',
             ],
         ];
+
+        // Super admin gets extra quick access to categories.
+        if (auth()->user()?->hasRole('super_admin')) {
+            $items[] = [
+                'label' => 'Kategori',
+                'hint' => 'Struktur konten',
+                'url' => CategoryResource::getUrl(),
+                'theme' => 'emerald',
+                'icon' => 'grid',
+            ];
+        }
+
+        return ['items' => $items];
     }
 }

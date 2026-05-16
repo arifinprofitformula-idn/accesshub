@@ -23,10 +23,18 @@ class UserOwnedLinksTest extends TestCase
         $this->category = Category::factory()->create();
     }
 
+    /** Helper — create an approved, active user with the given role. */
+    private function makeUser(string $role = 'user'): User
+    {
+        $user = User::factory()->create(['approved_at' => now()]);
+        $user->assignRole($role);
+
+        return $user;
+    }
+
     public function test_user_can_open_create_link_page(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('staff');
+        $user = $this->makeUser('user');
 
         $this->actingAs($user)
             ->get(route('app.links.create'))
@@ -37,8 +45,7 @@ class UserOwnedLinksTest extends TestCase
 
     public function test_user_can_create_link_and_owner_is_assigned_automatically(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('staff');
+        $user = $this->makeUser('user');
 
         $this->actingAs($user)
             ->post(route('app.links.store'), [
@@ -59,13 +66,10 @@ class UserOwnedLinksTest extends TestCase
         ]);
     }
 
-    public function test_dashboard_only_shows_users_private_links_and_allowed_shared_links(): void
+    public function test_dashboard_only_shows_users_own_links(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('staff');
-
-        $other = User::factory()->create();
-        $other->assignRole('staff');
+        $user = $this->makeUser('user');
+        $other = $this->makeUser('user');
 
         $ownLink = Link::factory()->create([
             'title' => 'My Private Link',
@@ -75,15 +79,15 @@ class UserOwnedLinksTest extends TestCase
             'status' => 'active',
         ]);
 
-        $sharedLink = Link::factory()->create([
-            'title' => 'Shared Team Link',
+        $otherSharedLink = Link::factory()->create([
+            'title' => 'Other Shared Link',
             'category_id' => $this->category->id,
             'visibility' => 'internal',
             'created_by' => $other->id,
             'status' => 'active',
         ]);
 
-        $privateOther = Link::factory()->create([
+        $otherPrivateLink = Link::factory()->create([
             'title' => 'Other Private Link',
             'category_id' => $this->category->id,
             'visibility' => 'private',
@@ -91,30 +95,18 @@ class UserOwnedLinksTest extends TestCase
             'status' => 'active',
         ]);
 
-        $ownerless = Link::factory()->create([
-            'title' => 'Ownerless Legacy Link',
-            'category_id' => $this->category->id,
-            'visibility' => 'internal',
-            'created_by' => null,
-            'status' => 'active',
-        ]);
-
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSeeText($ownLink->title)
-            ->assertSeeText($sharedLink->title)
-            ->assertDontSeeText($privateOther->title)
-            ->assertDontSeeText($ownerless->title);
+            ->assertDontSeeText($otherSharedLink->title)
+            ->assertDontSeeText($otherPrivateLink->title);
     }
 
-    public function test_user_can_edit_own_link_but_not_other_users_private_link(): void
+    public function test_user_can_edit_own_link_but_not_other_users_link(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('staff');
-
-        $other = User::factory()->create();
-        $other->assignRole('staff');
+        $user = $this->makeUser('user');
+        $other = $this->makeUser('user');
 
         $ownLink = Link::factory()->create([
             'category_id' => $this->category->id,
@@ -141,8 +133,7 @@ class UserOwnedLinksTest extends TestCase
 
     public function test_user_can_update_and_archive_own_link(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('staff');
+        $user = $this->makeUser('user');
 
         $link = Link::factory()->create([
             'title' => 'Old Link',
@@ -175,13 +166,10 @@ class UserOwnedLinksTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_see_all_links_including_ownerless_legacy_links(): void
+    public function test_super_admin_can_see_all_links_including_ownerless_legacy_links(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-
-        $owner = User::factory()->create();
-        $owner->assignRole('staff');
+        $superAdmin = $this->makeUser('super_admin');
+        $owner = $this->makeUser('user');
 
         $owned = Link::factory()->create([
             'title' => 'Owned Link',
@@ -199,60 +187,58 @@ class UserOwnedLinksTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($superAdmin)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSeeText($owned->title)
             ->assertSeeText($ownerless->title);
     }
 
-    public function test_search_and_category_filter_only_return_links_the_user_can_see(): void
+    public function test_search_only_returns_users_own_links(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('staff');
+        $user = $this->makeUser('user');
+        $other = $this->makeUser('user');
 
-        $other = User::factory()->create();
-        $other->assignRole('staff');
-
-        $marketing = Category::factory()->create(['name' => 'Marketing']);
-        $finance = Category::factory()->create(['name' => 'Finance']);
-
-        $visible = Link::factory()->create([
-            'title' => 'Campaign Plan',
-            'category_id' => $marketing->id,
-            'visibility' => 'internal',
-            'created_by' => $other->id,
-            'status' => 'active',
-        ]);
-
-        $hidden = Link::factory()->create([
-            'title' => 'Campaign Secret',
-            'category_id' => $marketing->id,
-            'visibility' => 'private',
-            'created_by' => $other->id,
-            'status' => 'active',
-        ]);
-
-        $otherCategory = Link::factory()->create([
-            'title' => 'Budget Board',
-            'category_id' => $finance->id,
+        $ownLink = Link::factory()->create([
+            'title' => 'Campaign Plan Own',
+            'category_id' => $this->category->id,
             'visibility' => 'private',
             'created_by' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $otherLink = Link::factory()->create([
+            'title' => 'Campaign Plan Other',
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $other->id,
             'status' => 'active',
         ]);
 
         $this->actingAs($user)
             ->get(route('dashboard', ['search' => 'Campaign']))
             ->assertOk()
-            ->assertSeeText($visible->title)
-            ->assertDontSeeText($hidden->title)
-            ->assertDontSeeText($otherCategory->title);
+            ->assertSeeText($ownLink->title)
+            ->assertDontSeeText($otherLink->title);
+    }
+
+    public function test_pending_user_cannot_access_dashboard(): void
+    {
+        $user = User::factory()->create(['approved_at' => null, 'is_active' => true]);
+        $user->assignRole('user');
 
         $this->actingAs($user)
-            ->get(route('dashboard', ['category' => $marketing->id]))
-            ->assertOk()
-            ->assertSeeText($visible->title)
-            ->assertDontSeeText($hidden->title)
-            ->assertDontSeeText($otherCategory->title);
+            ->get(route('app.dashboard'))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_inactive_user_cannot_access_dashboard(): void
+    {
+        $user = User::factory()->create(['approved_at' => now(), 'is_active' => false]);
+        $user->assignRole('user');
+
+        $this->actingAs($user)
+            ->get(route('app.dashboard'))
+            ->assertRedirect(route('login'));
     }
 }

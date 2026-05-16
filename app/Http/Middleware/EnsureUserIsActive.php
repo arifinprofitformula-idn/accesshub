@@ -16,17 +16,35 @@ class EnsureUserIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && ! $request->user()->is_active) {
-            Auth::guard('web')->logout();
+        $user = $request->user();
 
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        if (! $user) {
+            return $next($request);
+        }
+
+        if (! $user->is_active) {
+            $this->logout($request);
 
             return redirect()
                 ->route('login')
-                ->withErrors(['email' => 'Akun Anda sedang nonaktif.']);
+                ->withErrors(['email' => 'Akun Anda tidak aktif. Hubungi admin.']);
+        }
+
+        if (blank($user->approved_at)) {
+            $this->logout($request);
+
+            return redirect()
+                ->route('login')
+                ->withErrors(['email' => 'Akun Anda sedang menunggu persetujuan admin.']);
         }
 
         return $next($request);
+    }
+
+    private function logout(Request $request): void
+    {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 }

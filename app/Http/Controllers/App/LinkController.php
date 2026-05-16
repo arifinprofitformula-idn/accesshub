@@ -188,7 +188,7 @@ class LinkController extends Controller
             'visibility' => ['nullable', 'in:private,shared'],
         ]);
 
-        if (! $request->user()?->hasAnyRole(['super_admin', 'admin'])) {
+        if (! $request->user()?->hasRole('super_admin')) {
             unset($filters['status']);
         }
 
@@ -204,7 +204,7 @@ class LinkController extends Controller
             ->search($filters['search'] ?? null)
             ->when($filters['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
             ->when(
-                isset($filters['status']) && $user->hasAnyRole(['super_admin', 'admin']),
+                isset($filters['status']) && $user->hasRole('super_admin'),
                 fn (Builder $query) => $query->where('status', $filters['status']),
                 fn (Builder $query) => $query->where('status', 'active')
             )

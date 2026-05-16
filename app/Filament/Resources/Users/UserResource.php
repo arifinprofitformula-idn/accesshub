@@ -11,9 +11,9 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class UserResource extends Resource
 {
@@ -25,11 +25,11 @@ class UserResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Admin';
+    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen';
 
-    protected static ?string $navigationLabel = 'Users';
+    protected static ?string $navigationLabel = 'Pengguna';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
@@ -50,7 +50,7 @@ class UserResource extends Resource
     {
         $query = parent::getEloquentQuery()->with('roles');
 
-        if (! auth()->user()?->hasRole('super_admin')) {
+        if (! Auth::user()?->hasRole('super_admin')) {
             $query->whereDoesntHave('roles', fn (Builder $roleQuery) => $roleQuery->where('name', 'super_admin'));
         }
 
@@ -66,13 +66,21 @@ class UserResource extends Resource
         ];
     }
 
+    /** Badge shows count of users awaiting approval. */
     public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::query()->where('is_active', true)->count();
+        $pending = static::getModel()::query()->whereNull('approved_at')->count();
+
+        return $pending > 0 ? (string) $pending : null;
     }
 
     public static function getNavigationBadgeColor(): string|array|null
     {
-        return 'primary';
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Pengguna menunggu approval';
     }
 }

@@ -40,12 +40,12 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            // approved_at is intentionally null — admin must approve before access is granted
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('login')
+            ->with('status', 'Pendaftaran berhasil. Akun Anda sedang menunggu persetujuan admin.');
     }
 }

@@ -27,6 +27,7 @@ class User extends Authenticatable implements FilamentUser
         'avatar',
         'is_active',
         'last_login_at',
+        'approved_at',
     ];
 
     /**
@@ -38,13 +39,19 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
+            'approved_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_active && $this->hasAnyRole(['super_admin', 'admin']);
+        return $this->is_active && filled($this->approved_at) && $this->hasAnyRole(['super_admin', 'admin']);
+    }
+
+    public function isApproved(): bool
+    {
+        return filled($this->approved_at);
     }
 
     public function createdLinks(): HasMany
