@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -47,6 +48,8 @@ class RegistrationTest extends TestCase
         $this->assertNull($user->approved_at);
         $this->assertTrue($user->is_active);
         $this->assertTrue($user->hasRole('user'));
+        $this->assertTrue(Hash::check('password', $user->password));
+        $this->assertSame('bcrypt', password_get_info($user->password)['algoName']);
     }
 
     public function test_whatsapp_is_required_for_registration(): void

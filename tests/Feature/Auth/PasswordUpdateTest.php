@@ -29,6 +29,7 @@ class PasswordUpdateTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertSame('bcrypt', password_get_info($user->password)['algoName']);
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void

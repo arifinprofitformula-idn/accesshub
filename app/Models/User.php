@@ -5,12 +5,14 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -41,8 +43,29 @@ class User extends Authenticatable implements FilamentUser
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
             'approved_at' => 'datetime',
-            'password' => 'hashed',
         ];
+    }
+
+    protected function password(): Attribute
+    {
+        return Attribute::make(
+            set: static function (?string $value): ?string {
+                if ($value === null || $value === '') {
+                    return $value;
+                }
+
+                if (self::isBcryptHash($value)) {
+                    return $value;
+                }
+
+                return Hash::driver('bcrypt')->make($value);
+            },
+        );
+    }
+
+    protected static function isBcryptHash(string $value): bool
+    {
+        return password_get_info($value)['algoName'] === 'bcrypt';
     }
 
     public function canAccessPanel(Panel $panel): bool

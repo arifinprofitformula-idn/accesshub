@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class LoginRequest extends FormRequest
 {
@@ -52,7 +53,13 @@ class LoginRequest extends FormRequest
             ->where('email', $email)
             ->first();
 
-        if (! $user || ! Hash::check($password, $user->password)) {
+        try {
+            $credentialsValid = $user && Hash::check($password, $user->password);
+        } catch (RuntimeException) {
+            $credentialsValid = false;
+        }
+
+        if (! $credentialsValid) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
