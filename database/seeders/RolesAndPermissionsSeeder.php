@@ -75,6 +75,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'staff' => [
                 'dashboard.view',
                 'links.view',
+                'links.create',
+                'links.update',
+                'links.delete',
                 'links.open',
                 'access_items.view',
                 'access_items.open',

@@ -71,6 +71,31 @@ class AccessHubPhaseTwoTest extends TestCase
         $response->assertDontSeeText($privateOther->title);
     }
 
+    public function test_user_can_create_link_from_simplified_app_form(): void
+    {
+        $staff = User::factory()->create();
+        $staff->assignRole('staff');
+
+        $response = $this->actingAs($staff)->post(route('app.links.store'), [
+            'title' => 'Proposal Klien A',
+            'url' => 'https://docs.google.com/document/d/123',
+            'category_id' => $this->category->id,
+            'description' => 'Dokumen proposal utama',
+            'visibility' => 'shared',
+            'tags' => 'proposal, client-a',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseHas('links', [
+            'title' => 'Proposal Klien A',
+            'category_id' => $this->category->id,
+            'created_by' => $staff->id,
+            'visibility' => 'internal',
+            'status' => 'active',
+        ]);
+    }
+
     public function test_admin_can_access_filament_link_manager(): void
     {
         $admin = User::factory()->create();
@@ -146,6 +171,107 @@ class AccessHubPhaseTwoTest extends TestCase
             ->get(route('app.links.index', ['favorites' => 1]))
             ->assertOk()
             ->assertDontSeeText($link->title);
+    }
+
+    public function test_dashboard_shows_shared_links_from_other_users(): void
+    {
+        $staff = User::factory()->create();
+        $staff->assignRole('staff');
+
+        $owner = User::factory()->create();
+        $owner->assignRole('staff');
+
+        $sharedLink = Link::factory()->create([
+            'title' => 'Shared Workspace Link',
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $owner->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($staff)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeText($sharedLink->title);
+    }
+
+    public function test_search_by_title_works_on_dashboard(): void
+    {
+        $staff = User::factory()->create();
+        $staff->assignRole('staff');
+
+        $proposalLink = Link::factory()->create([
+            'title' => 'Proposal Marketing 2026',
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $staff->id,
+            'status' => 'active',
+        ]);
+
+        $otherLink = Link::factory()->create([
+            'title' => 'Finance Sheet',
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $staff->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($staff)
+            ->get(route('dashboard', ['search' => 'Proposal']))
+            ->assertOk()
+            ->assertSeeText($proposalLink->title)
+            ->assertDontSeeText($otherLink->title);
+    }
+
+    public function test_category_filter_works_on_dashboard(): void
+    {
+        $staff = User::factory()->create();
+        $staff->assignRole('staff');
+
+        $marketingCategory = Category::factory()->create(['name' => 'Marketing']);
+        $financeCategory = Category::factory()->create(['name' => 'Keuangan']);
+
+        $marketingLink = Link::factory()->create([
+            'title' => 'Campaign Planner',
+            'category_id' => $marketingCategory->id,
+            'visibility' => 'internal',
+            'created_by' => $staff->id,
+            'status' => 'active',
+        ]);
+
+        $financeLink = Link::factory()->create([
+            'title' => 'Budget Sheet',
+            'category_id' => $financeCategory->id,
+            'visibility' => 'internal',
+            'created_by' => $staff->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($staff)
+            ->get(route('dashboard', ['category' => $marketingCategory->id]))
+            ->assertOk()
+            ->assertSeeText($marketingLink->title)
+            ->assertDontSeeText($financeLink->title);
+    }
+
+    public function test_user_can_not_edit_link_owned_by_other_user(): void
+    {
+        $staff = User::factory()->create();
+        $staff->assignRole('staff');
+
+        $owner = User::factory()->create();
+        $owner->assignRole('staff');
+
+        $link = Link::factory()->create([
+            'category_id' => $this->category->id,
+            'visibility' => 'internal',
+            'created_by' => $owner->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($staff)
+            ->get(route('app.links.edit', $link))
+            ->assertForbidden();
     }
 
     public function test_open_link_route_logs_activity(): void

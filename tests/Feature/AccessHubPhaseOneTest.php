@@ -125,7 +125,9 @@ class AccessHubPhaseOneTest extends TestCase
         $staff->assignRole('staff');
 
         $this->assertTrue($admin->can('links.create'));
-        $this->assertFalse($staff->can('links.create'));
+        $this->assertTrue($staff->can('links.create'));
+        $this->assertTrue($staff->can('links.update'));
+        $this->assertTrue($staff->can('links.delete'));
         $this->assertTrue($staff->can('links.view'));
     }
 

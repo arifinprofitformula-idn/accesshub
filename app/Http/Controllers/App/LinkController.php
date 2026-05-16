@@ -5,67 +5,153 @@ namespace App\Http\Controllers\App;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Link;
+use App\Models\Tag;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class LinkController extends Controller
 {
+    public function dashboard(Request $request): View
+    {
+        $this->authorize('viewAny', Link::class);
+
+        $user = $request->user();
+        $filters = $this->validateFilters($request);
+        $links = $this->buildFilteredQuery($user, $filters)
+            ->paginate(12)
+            ->withQueryString();
+
+        $visibleLinks = Link::query()
+            ->visibleTo($user)
+            ->where('status', 'active');
+
+        return view('app.dashboard', [
+            'links' => $links,
+            'categories' => $this->categories(),
+            'favoriteIds' => $this->favoriteIds($user),
+            'filters' => $filters,
+            'stats' => [
+                'total_links' => (clone $visibleLinks)->count(),
+                'favorite_links' => $user->favorites()->count(),
+                'categories' => Category::query()->where('is_active', true)->count(),
+            ],
+            'recentLinks' => (clone $visibleLinks)
+                ->with(['category', 'tags'])
+                ->latest()
+                ->take(4)
+                ->get(),
+        ]);
+    }
+
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Link::class);
 
-        $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max:100'],
-            'category' => ['nullable', 'integer', 'exists:categories,id'],
-            'status' => ['nullable', 'in:active,needs_review,archived'],
-            'priority' => ['nullable', 'in:normal,important,critical'],
-            'platform' => ['nullable', 'string', 'max:255'],
-            'favorites' => ['nullable', 'boolean'],
-        ]);
-
         $user = $request->user();
-
-        $links = Link::query()
-            ->with(['category', 'tags', 'creator', 'visibleToRoles'])
-            ->withCount('favorites')
-            ->visibleTo($user)
-            ->search($validated['search'] ?? null)
-            ->when($validated['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
-            ->when($validated['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
-            ->when($validated['priority'] ?? null, fn (Builder $query, string $priority) => $query->where('priority', $priority))
-            ->when($validated['platform'] ?? null, fn (Builder $query, string $platform) => $query->where('platform', $platform))
-            ->when(
-                filter_var($validated['favorites'] ?? false, FILTER_VALIDATE_BOOL),
-                fn (Builder $query) => $query->whereHas('favorites', fn (Builder $favoriteQuery) => $favoriteQuery->where('user_id', $user->id))
-            )
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
-
-        $categories = Category::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $platforms = Link::query()
-            ->visibleTo($user)
-            ->whereNotNull('platform')
-            ->where('platform', '!=', '')
-            ->distinct()
-            ->orderBy('platform')
-            ->pluck('platform');
-
-        $favoriteIds = $user->favorites()->pluck('link_id')->all();
+        $filters = $this->validateFilters($request);
 
         return view('app.links.index', [
-            'links' => $links,
-            'categories' => $categories,
-            'platforms' => $platforms,
-            'favoriteIds' => $favoriteIds,
-            'filters' => $validated,
+            'links' => $this->buildFilteredQuery($user, $filters)
+                ->paginate(12)
+                ->withQueryString(),
+            'categories' => $this->categories(),
+            'favoriteIds' => $this->favoriteIds($user),
+            'filters' => $filters,
         ]);
+    }
+
+    public function create(): View
+    {
+        $this->authorize('create', Link::class);
+
+        return view('app.links.create', [
+            'categories' => $this->categories(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->authorize('create', Link::class);
+
+        $validated = $this->validateLink($request);
+
+        $link = Link::create([
+            'title' => $validated['title'],
+            'url' => $validated['url'],
+            'category_id' => $validated['category_id'],
+            'description' => $validated['description'] ?? null,
+            'platform' => $this->extractDomain($validated['url']),
+            'priority' => 'normal',
+            'status' => 'active',
+            'visibility' => $this->resolveStoredVisibility($validated['visibility'] ?? 'shared'),
+            'owner_name' => $request->user()->name,
+        ]);
+
+        $this->syncTags($link, $validated['tags'] ?? null);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Link berhasil disimpan.');
+    }
+
+    public function edit(Link $link): View
+    {
+        $this->authorize('update', $link);
+
+        $link->load('tags');
+
+        return view('app.links.edit', [
+            'link' => $link,
+            'categories' => $this->categories(),
+            'tagString' => $link->tags->pluck('name')->implode(', '),
+            'selectedVisibility' => $this->presentVisibility($link),
+        ]);
+    }
+
+    public function update(Request $request, Link $link): RedirectResponse
+    {
+        $this->authorize('update', $link);
+
+        $validated = $this->validateLink($request);
+
+        $storedVisibility = $this->resolveStoredVisibility($validated['visibility'] ?? 'shared', $link);
+
+        $link->update([
+            'title' => $validated['title'],
+            'url' => $validated['url'],
+            'category_id' => $validated['category_id'],
+            'description' => $validated['description'] ?? null,
+            'platform' => $this->extractDomain($validated['url']),
+            'visibility' => $storedVisibility,
+            'owner_name' => $link->owner_name ?: $request->user()->name,
+        ]);
+
+        if ($storedVisibility !== 'role') {
+            $link->visibleToRoles()->sync([]);
+        }
+
+        $this->syncTags($link, $validated['tags'] ?? null);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Link berhasil diperbarui.');
+    }
+
+    public function destroy(Request $request, Link $link): RedirectResponse
+    {
+        $this->authorize('delete', $link);
+
+        $link->update([
+            'status' => 'archived',
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Link dipindahkan ke arsip.');
     }
 
     public function open(Request $request, Link $link): RedirectResponse
@@ -105,5 +191,112 @@ class LinkController extends Controller
         }
 
         return back()->with('status', $message);
+    }
+
+    protected function validateFilters(Request $request): array
+    {
+        return $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'integer', 'exists:categories,id'],
+            'favorites' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'in:active,needs_review,archived'],
+        ]);
+    }
+
+    protected function validateLink(Request $request): array
+    {
+        return $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'url' => ['required', 'url:http,https', 'max:2048'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'tags' => ['nullable', 'string', 'max:255'],
+            'visibility' => ['nullable', 'in:private,shared'],
+        ]);
+    }
+
+    protected function buildFilteredQuery($user, array $filters): Builder
+    {
+        return Link::query()
+            ->with(['category', 'tags'])
+            ->withCount('favorites')
+            ->visibleTo($user)
+            ->search($filters['search'] ?? null)
+            ->when($filters['category'] ?? null, fn (Builder $query, int $categoryId) => $query->where('category_id', $categoryId))
+            ->when(
+                isset($filters['status']),
+                fn (Builder $query) => $query->where('status', $filters['status']),
+                fn (Builder $query) => $query->where('status', 'active')
+            )
+            ->when(
+                filter_var($filters['favorites'] ?? false, FILTER_VALIDATE_BOOL),
+                fn (Builder $query) => $query->whereHas('favorites', fn (Builder $favoriteQuery) => $favoriteQuery->where('user_id', $user->id))
+            )
+            ->latest();
+    }
+
+    protected function categories(): Collection
+    {
+        return Category::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    protected function favoriteIds($user): array
+    {
+        return $user->favorites()->pluck('link_id')->all();
+    }
+
+    protected function syncTags(Link $link, ?string $tagString): void
+    {
+        $tagIds = collect(explode(',', (string) $tagString))
+            ->map(fn (string $tag) => trim($tag))
+            ->filter()
+            ->unique(fn (string $tag) => Str::lower($tag))
+            ->take(8)
+            ->map(function (string $tag): int {
+                $slug = Str::slug($tag);
+
+                return Tag::firstOrCreate(
+                    ['slug' => $slug],
+                    ['name' => $tag],
+                )->id;
+            })
+            ->values()
+            ->all();
+
+        $link->tags()->sync($tagIds);
+    }
+
+    protected function extractDomain(string $url): ?string
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if (! is_string($host) || $host === '') {
+            return null;
+        }
+
+        return Str::of($host)
+            ->replaceStart('www.', '')
+            ->toString();
+    }
+
+    protected function resolveStoredVisibility(string $visibility, ?Link $link = null): string
+    {
+        if ($visibility === 'private') {
+            return 'private';
+        }
+
+        if ($link?->visibility === 'role') {
+            return 'role';
+        }
+
+        return 'internal';
+    }
+
+    protected function presentVisibility(Link $link): string
+    {
+        return $link->visibility === 'private' ? 'private' : 'shared';
     }
 }

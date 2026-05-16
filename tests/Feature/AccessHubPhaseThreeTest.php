@@ -26,14 +26,24 @@ class AccessHubPhaseThreeTest extends TestCase
         $this->category = Category::factory()->create();
     }
 
-    public function test_admin_can_access_filament_access_item_manager(): void
+    public function test_super_admin_can_access_filament_access_item_manager(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        $this->actingAs($admin)
+            ->get('/admin/access-items')
+            ->assertOk();
+    }
+
+    public function test_admin_can_not_access_filament_access_item_manager_anymore(): void
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
         $this->actingAs($admin)
             ->get('/admin/access-items')
-            ->assertOk();
+            ->assertForbidden();
     }
 
     public function test_staff_only_sees_access_items_granted_to_them(): void
@@ -199,5 +209,18 @@ class AccessHubPhaseThreeTest extends TestCase
         $this->assertStringNotContainsString('changed@example.test', json_encode($properties));
         $this->assertStringNotContainsString('Changed Location', json_encode($properties));
         $this->assertStringNotContainsString('Changed sensitive note', json_encode($properties));
+    }
+
+    public function test_staff_dashboard_does_not_show_access_item_manager_or_activity_log_menu(): void
+    {
+        $staff = User::factory()->create();
+        $staff->assignRole('staff');
+
+        $this->actingAs($staff)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSeeText('Access Item Manager')
+            ->assertDontSeeText('Access Items')
+            ->assertDontSeeText('Activity Log');
     }
 }

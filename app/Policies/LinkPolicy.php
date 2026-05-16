@@ -33,12 +33,20 @@ class LinkPolicy
 
     public function update(User $user, Link $link): bool
     {
-        return $user->can('links.update');
+        if (! $user->can('links.update')) {
+            return false;
+        }
+
+        return $user->hasRole('admin') || $link->created_by === $user->id;
     }
 
     public function delete(User $user, Link $link): bool
     {
-        return $user->can('links.delete');
+        if (! $user->can('links.delete')) {
+            return false;
+        }
+
+        return $user->hasRole('admin') || $link->created_by === $user->id;
     }
 
     public function restore(User $user, Link $link): bool
