@@ -23,9 +23,11 @@
             </div>
 
             <div
-                x-data="categoryQuickAdd"
+                x-data="categoryQuickAdd({
+                    storeUrl: @js(route('app.categories.quick-store')),
+                    csrfToken: @js(csrf_token()),
+                })"
                 data-store-url="{{ route('app.categories.quick-store') }}"
-                data-csrf="{{ csrf_token() }}"
             >
                 <label for="category_id" class="mb-2 block text-sm font-semibold text-cyan-200">Kategori</label>
 
@@ -123,7 +125,7 @@
 
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('categoryQuickAdd', () => ({
+    Alpine.data('categoryQuickAdd', (config = {}) => ({
         showNew: false,
         newName: '',
         saving: false,
@@ -133,8 +135,8 @@ document.addEventListener('alpine:init', () => {
         csrfToken: '',
 
         init() {
-            this.storeUrl = this.$root.dataset.storeUrl || '';
-            this.csrfToken = this.$root.dataset.csrf || '';
+            this.storeUrl = config.storeUrl || this.$root.dataset.storeUrl || '';
+            this.csrfToken = config.csrfToken || '';
         },
 
         onSelectChange(event) {
