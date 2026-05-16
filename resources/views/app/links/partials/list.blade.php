@@ -75,12 +75,13 @@
                         </a>
                     @endcan
                     @can('delete', $link)
-                        <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm({{ Js::from('Hapus asset link ini dari daftar kelola? Link akan diarsipkan.') }})">
+                        <form method="POST" action="{{ route('app.links.destroy', $link) }}">
                             @csrf
                             @method('DELETE')
                             <button
-                                type="submit"
+                                type="button"
                                 title="Hapus"
+                                @click="$store.confirmModal.open({ title: 'Hapus Link', message: 'Link ini akan diarsipkan dari daftar kelola.', confirmLabel: 'Hapus', onConfirm: () => $el.closest('form').submit() })"
                                 class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-rose-300/20 bg-rose-400/10 text-rose-300 transition hover:bg-rose-400/18"
                             >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
@@ -174,13 +175,14 @@
                 @endcan
                 @can('delete', $link)
                     @unless ($dashboardMode)
-                    <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm({{ Js::from($manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?') }})">
+                    <form method="POST" action="{{ route('app.links.destroy', $link) }}">
                         @csrf
                         @method('DELETE')
                         <button
-                            type="submit"
-                            title="{{ $manageMode ? 'Hapus' : 'Arsipkan' }}"
-                            aria-label="{{ $manageMode ? 'Hapus' : 'Arsipkan' }}"
+                            type="button"
+                            title="Arsipkan"
+                            aria-label="Arsipkan"
+                            @click="$store.confirmModal.open({ title: 'Arsipkan Link', message: 'Link akan dipindahkan ke arsip dan tidak muncul di daftar aktif.', confirmLabel: 'Arsipkan', onConfirm: () => $el.closest('form').submit() })"
                             class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18"
                         >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
@@ -376,9 +378,9 @@
                                     @endcan
                                     @can('delete', $link)
                                         @unless ($dashboardMode)
-                                        <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('Hapus asset link ini dari daftar kelola? Link akan diarsipkan.')">
+                                        <form method="POST" action="{{ route('app.links.destroy', $link) }}">
                                             @csrf @method('DELETE')
-                                            <button type="submit" title="Hapus" aria-label="Hapus" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18">
+                                            <button type="button" title="Hapus" aria-label="Hapus" @click="$store.confirmModal.open({ title: 'Hapus Link', message: 'Link ini akan diarsipkan dari daftar kelola.', confirmLabel: 'Hapus', onConfirm: () => $el.closest('form').submit() })" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M4 7h16"/><path d="m9 7 .75-2h4.5L15 7"/><path d="M7.75 7 8.5 18.25A1.75 1.75 0 0 0 10.246 20h3.508A1.75 1.75 0 0 0 15.5 18.25L16.25 7"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
                                             </button>
                                         </form>
@@ -400,9 +402,9 @@
                                         </a>
                                     @endcan
                                     @can('delete', $link)
-                                        <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('Arsipkan link ini?')">
+                                        <form method="POST" action="{{ route('app.links.destroy', $link) }}">
                                             @csrf @method('DELETE')
-                                            <button type="submit" title="Arsipkan" aria-label="Arsipkan" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18">
+                                            <button type="button" title="Arsipkan" aria-label="Arsipkan" @click="$store.confirmModal.open({ title: 'Arsipkan Link', message: 'Link akan dipindahkan ke arsip dan tidak muncul di daftar aktif.', confirmLabel: 'Arsipkan', onConfirm: () => $el.closest('form').submit() })" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100 transition hover:border-rose-300/35 hover:bg-rose-400/18">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M4.75 7.75h14.5"/><path d="M6.75 7.75v9.5A1.75 1.75 0 0 0 8.5 19h7a1.75 1.75 0 0 0 1.75-1.75v-9.5"/><path d="M9 7.75V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2.25"/><path d="M10 11.25h4"/></svg>
                                             </button>
                                         </form>

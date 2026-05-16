@@ -205,6 +205,72 @@
 
             @include('layouts.partials.pwa-shell')
 
+            {{-- Custom Confirm Modal --}}
+            <div
+                x-data
+                x-show="$store.confirmModal.show"
+                x-cloak
+                class="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                @keydown.escape.window="$store.confirmModal.cancel()"
+            >
+                {{-- Backdrop --}}
+                <div
+                    class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                    @click="$store.confirmModal.cancel()"
+                ></div>
+
+                {{-- Dialog --}}
+                <div
+                    class="relative w-full max-w-sm rounded-[1.85rem] border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.99)_0%,rgba(8,17,32,0.97)_55%,rgba(127,29,29,0.12)_100%)] p-6 shadow-[0_40px_90px_-30px_rgba(239,68,68,0.4),0_0_0_1px_rgba(255,255,255,0.06)] backdrop-blur-2xl"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                    @click.stop
+                >
+                    {{-- Icon --}}
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-[1.1rem] border border-rose-300/25 bg-rose-500/12 text-rose-300 shadow-[0_14px_36px_-18px_rgba(239,68,68,0.55)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
+                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+                            <path d="M12 9v4"/><path d="M12 17h.01"/>
+                        </svg>
+                    </div>
+
+                    {{-- Text --}}
+                    <h3
+                        class="mt-4 text-center text-base font-semibold text-white"
+                        x-text="$store.confirmModal.title"
+                    ></h3>
+                    <p
+                        class="mt-2 text-center text-sm leading-6 text-slate-400"
+                        x-text="$store.confirmModal.message"
+                    ></p>
+
+                    {{-- Actions --}}
+                    <div class="mt-6 flex gap-3">
+                        <button
+                            type="button"
+                            @click="$store.confirmModal.cancel()"
+                            class="ah-secondary-btn flex-1 justify-center"
+                        >Batal</button>
+                        <button
+                            type="button"
+                            @click="$store.confirmModal.confirm()"
+                            x-text="$store.confirmModal.confirmLabel"
+                            class="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-5 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(239,68,68,0.7)] transition hover:brightness-110 active:scale-[0.98]"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+
             <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-slate-950/96 px-1 py-1 backdrop-blur-2xl md:hidden">
                 <div class="grid w-full grid-cols-5 items-end gap-1">
                     @foreach ($mobileNavItems as $item)

@@ -6,6 +6,9 @@
     body {
         @apply bg-slate-950 text-slate-100;
     }
+    [x-cloak] {
+        display: none !important;
+    }
 }
 
 @layer components {
