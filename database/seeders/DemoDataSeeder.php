@@ -49,6 +49,17 @@ class DemoDataSeeder extends Seeder
         );
         $staff->syncRoles(['staff']);
 
+        $user = User::updateOrCreate(
+            ['email' => 'user@accesshub.test'],
+            [
+                'name' => 'Regular User',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'approved_at' => now(),
+            ],
+        );
+        $user->syncRoles(['user']);
+
         $marketingCategory = Category::where('slug', 'marketing')->first();
         $workspaceCategory = Category::where('slug', 'google-workspace')->first();
         $websiteCategory = Category::where('slug', 'website-hosting')->first();

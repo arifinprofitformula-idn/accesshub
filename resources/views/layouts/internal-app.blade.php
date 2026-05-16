@@ -110,14 +110,14 @@
     <body class="min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.12),transparent_24%),linear-gradient(180deg,#020617_0%,#081120_100%)] font-sans text-slate-100 antialiased">
         <div class="min-h-screen">
             <header class="border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
-                <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-5 lg:px-6">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-                        <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-1.5 shadow-[0_18px_45px_-24px_rgba(34,211,238,0.95)]">
+                <div class="flex items-center justify-between gap-3 px-3 py-2 sm:px-5 sm:py-3.5 lg:px-6">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 sm:gap-3">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5 p-1 shadow-[0_14px_36px_-18px_rgba(34,211,238,0.9)] sm:h-11 sm:w-11 sm:rounded-[1.25rem] sm:p-1.5">
                             <img src="{{ asset('icons/icon-192.png') }}" alt="Access Hub logo" class="h-full w-full object-contain">
                         </div>
                         <div>
-                            <h1 class="text-lg font-semibold text-white">Access Hub</h1>
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">Find. Access. Work.</p>
+                            <h1 class="text-sm font-semibold text-white sm:text-lg">Access Hub</h1>
+                            <p class="hidden text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300 sm:block">Find. Access. Work.</p>
                         </div>
                     </a>
 
@@ -153,18 +153,18 @@
                     </div>
                 </div>
 
-                <div class="px-4 pb-5 sm:px-5 lg:px-6">
-                    <div class="rounded-[1.85rem] border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(8,17,32,0.94)_52%,rgba(91,33,182,0.12)_100%)] p-5 shadow-[0_28px_65px_-42px_rgba(34,211,238,0.75)] sm:p-6">
-                        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="px-3 pb-2.5 sm:px-5 sm:pb-4 lg:px-6">
+                    <div class="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(8,17,32,0.94)_52%,rgba(91,33,182,0.12)_100%)] p-3 shadow-[0_20px_50px_-30px_rgba(34,211,238,0.65)] sm:rounded-[1.85rem] sm:p-5">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">{{ $eyebrow ?? 'Workspace' }}</p>
-                                <h2 class="mt-1 text-2xl font-semibold text-white sm:text-3xl">{{ $heading ?? 'AccessHub' }}</h2>
+                                <p class="text-[10px] font-semibold uppercase tracking-[0.32em] text-cyan-300 sm:text-[11px]">{{ $eyebrow ?? 'Workspace' }}</p>
+                                <h2 class="mt-0.5 text-lg font-semibold text-white sm:mt-1 sm:text-2xl lg:text-3xl">{{ $heading ?? 'AccessHub' }}</h2>
                                 @isset($subheading)
-                                    <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{{ $subheading }}</p>
+                                    <p class="mt-1 hidden max-w-2xl text-sm leading-6 text-slate-300 sm:block sm:mt-2">{{ $subheading }}</p>
                                 @endisset
                             </div>
 
-                            <div class="flex flex-wrap gap-2">
+                            <div class="hidden flex-wrap gap-2 md:flex">
                                 @foreach ($navItems as $item)
                                     <a href="{{ $item['route'] }}" class="{{ $item['active'] ? 'border-cyan-300/25 bg-cyan-400/12 text-white' : 'border-white/10 bg-white/5 text-slate-300' }} flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition hover:border-cyan-300/20 hover:bg-white/10 hover:text-white">
                                         <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300/85 via-sky-400 to-violet-500 text-slate-950">
@@ -179,7 +179,7 @@
                 </div>
             </header>
 
-            <main class="px-4 py-6 pb-24 sm:px-5 md:pb-6 lg:px-6 lg:py-8">
+            <main class="px-3 py-3 pb-20 sm:px-5 sm:py-5 md:pb-6 lg:px-6 lg:py-8">
                 <div class="w-full">
                     @if (session('status'))
                         <div class="ah-alert-success mb-6">
@@ -205,7 +205,7 @@
 
             @include('layouts.partials.pwa-shell')
 
-            <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-slate-950/94 px-2 py-1.5 backdrop-blur-2xl md:hidden">
+            <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-slate-950/96 px-1 py-1 backdrop-blur-2xl md:hidden">
                 <div class="grid w-full grid-cols-5 items-end gap-1">
                     @foreach ($mobileNavItems as $item)
                         <a

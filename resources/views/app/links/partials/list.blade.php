@@ -16,7 +16,7 @@
 
     @if ($dashboardMode)
     {{-- Compact dashboard card --}}
-    <article class="ah-panel p-3">
+    <article class="ah-panel rounded-xl p-3">
         <div class="flex items-start gap-2">
             <div class="min-w-0 flex-1">
                 <p class="truncate text-[10px] font-semibold uppercase tracking-wider text-cyan-300/70">{{ $link->category?->name ?? 'Tanpa kategori' }}</p>
@@ -146,7 +146,7 @@
                 @endcan
                 @can('delete', $link)
                     @unless ($dashboardMode)
-                    <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm('{{ $manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?' }}')">
+                    <form method="POST" action="{{ route('app.links.destroy', $link) }}" onsubmit="return confirm({{ Js::from($manageMode ? 'Hapus asset link ini dari daftar kelola? Link akan diarsipkan.' : 'Arsipkan link ini?') }})">
                         @csrf
                         @method('DELETE')
                         <button
