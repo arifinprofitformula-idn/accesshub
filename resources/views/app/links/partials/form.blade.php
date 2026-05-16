@@ -129,6 +129,13 @@ document.addEventListener('alpine:init', () => {
         saving: false,
         errorMsg: '',
         successMsg: '',
+        storeUrl: '',
+        csrfToken: '',
+
+        init() {
+            this.storeUrl = this.$root.dataset.storeUrl || '';
+            this.csrfToken = this.$root.dataset.csrf || '';
+        },
 
         onSelectChange(event) {
             if (event.target.value !== '__new__') return;
@@ -147,19 +154,20 @@ document.addEventListener('alpine:init', () => {
 
         save() {
             if (!this.newName.trim() || this.saving) return;
-
-            const url  = this.$el.dataset.storeUrl;
-            const csrf = this.$el.dataset.csrf;
+            if (!this.storeUrl || !this.csrfToken) {
+                this.errorMsg = 'Endpoint kategori tidak tersedia. Muat ulang halaman lalu coba lagi.';
+                return;
+            }
 
             this.saving = true;
             this.errorMsg = '';
             this.successMsg = '';
 
-            fetch(url, {
+            fetch(this.storeUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf,
+                    'X-CSRF-TOKEN': this.csrfToken,
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({ name: this.newName.trim() }),
