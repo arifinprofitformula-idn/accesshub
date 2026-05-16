@@ -57,6 +57,7 @@ class Link extends Model
     {
         return [
             'last_checked_at' => 'datetime',
+            'created_by' => 'integer',
         ];
     }
 
